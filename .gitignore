@@ -1,0 +1,10 @@
+# Default project and binary exludes go here
+# Using an editor that is not listed yet? Feel free to
+# add the config here!
+.vscode/
+bin/
+obj/
+
+# Exclude the config.json containing runtime secrets
+# that should not appear in the commit history
+/config.json
