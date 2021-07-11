@@ -33,6 +33,8 @@ namespace DevExchangeBot
 
             System.Console.WriteLine(_config.Token);
 
+            Data.InitializeStorage();
+
             await _client.ConnectAsync();
             await Task.Delay(-1);
         }
