@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using Newtonsoft.Json;
 using DevExchangeBot.Configuration;
+using DevExchangeBot.Storage;
 
 namespace DevExchangeBot
 {
@@ -33,7 +34,7 @@ namespace DevExchangeBot
 
             System.Console.WriteLine(_config.Token);
 
-            Data.InitializeStorage();
+            StorageContext.InitializeStorage();
 
             await _client.ConnectAsync();
             await Task.Delay(-1);
