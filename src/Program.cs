@@ -32,8 +32,6 @@ namespace DevExchangeBot
                 TokenType = TokenType.Bot,
             });
 
-            System.Console.WriteLine(_config.Token);
-
             StorageContext.InitializeStorage();
 
             await _client.ConnectAsync();
