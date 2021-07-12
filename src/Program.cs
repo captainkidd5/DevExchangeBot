@@ -1,9 +1,16 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
+using DevExchangeBot.Commands;
 using DSharpPlus;
 using Newtonsoft.Json;
 using DevExchangeBot.Configuration;
 using DevExchangeBot.Storage;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Enums;
+using DSharpPlus.Interactivity.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace DevExchangeBot
 {
@@ -30,14 +37,44 @@ namespace DevExchangeBot
             {
                 Token = _config.Token,
                 TokenType = TokenType.Bot,
+                Intents = DiscordIntents.All // TODO: Enable intents in the bot's application page
             });
 
-            System.Console.WriteLine(_config.Token);
+            _client.MessageCreated += ClientEvents.OnMessageCreated;
+
+            var commands = _client.UseCommandsNext(new CommandsNextConfiguration()
+            {
+                EnableDms = false,
+                EnableMentionPrefix = false,
+                StringPrefixes = new [] {"dx!"} // TODO: Change the prefix if needed
+            });
+
+            commands.CommandErrored += OnCommandErrored;
+
+            commands.RegisterCommands<LevellingCommands>();
+
+            _client.UseInteractivity(new InteractivityConfiguration()
+            {
+                Timeout = TimeSpan.FromSeconds(30),
+                PaginationBehaviour = PaginationBehaviour.WrapAround,
+                PaginationDeletion = PaginationDeletion.DeleteEmojis
+            });
+
+            Console.WriteLine(_config.Token);
 
             StorageContext.InitializeStorage();
 
             await _client.ConnectAsync();
             await Task.Delay(-1);
+        }
+
+        private static Task OnCommandErrored(CommandsNextExtension sender, CommandErrorEventArgs e)
+        {
+            e.Context.Client.Logger.LogError(new EventId(0, "Error"), e.Exception,
+                "User '{Username}#{Discriminator}' ({UserId}) tried to execute '{Command}' "
+                + "in #{ChannelName} ({ChannelId}) and failed with {ExceptionType}: {ExceptionMessage}",
+                e.Context.User.Username, e.Context.User.Discriminator, e.Context.User.Id, e.Command?.QualifiedName ?? "<unknown command>", e.Context.Channel.Name, e.Context.Channel.Id, e.Exception.GetType(), e.Exception.Message);
+            return Task.CompletedTask;
         }
     }
 }
