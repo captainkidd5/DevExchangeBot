@@ -25,7 +25,10 @@ bot. These features include:
 
 - A self-service role assignment system where members pick their own roles by reacting with emojis;
 - A virtual "pet" that the Dev Exchange community as a whole is intended to take care of;
-- A levelling system.
+- A levelling system;
+- A heart counter for the :pxheart: emoji to show some interesting statistics.
+
+**NOTE:** If you want to work on a feature, please open an issue to let others know that the feature is being worked on already!
 
 If you have any other features you'd like to see added to this list, feel free to
 open an issue on the matter.
