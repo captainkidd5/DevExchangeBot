@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Timers;
+using DevExchangeBot.Models;
 using Newtonsoft.Json;
 
 namespace DevExchangeBot.Storage
@@ -33,20 +35,26 @@ namespace DevExchangeBot.Storage
 
             if (!File.Exists(FilePath))
             {
-                File.Create(FilePath);
-                File.WriteAllText(FilePath, "{}");
+                var fs = File.Create(FilePath);
+                fs.Dispose();
             }
 
             // Retrieve the data and load the static object with it
-            Model = JsonConvert.DeserializeObject<StorageModel>(File.ReadAllText(FilePath));
+            Model = JsonConvert.DeserializeObject<StorageModel>(File.ReadAllText(FilePath)) ?? new StorageModel
+            {
+                UserDictionary = new Dictionary<ulong, UserData>(),
+                XpMultiplier = 1
+            };
         }
-
         private static void SaveData(object sender, EventArgs eventArgs)
         {
             var json = JsonConvert.SerializeObject(Model, Formatting.Indented);
 
             if (!File.Exists(FilePath))
-                File.Create(FilePath);
+            {
+                var fs = File.Create(FilePath);
+                fs.Dispose();
+            }
 
             File.WriteAllText(FilePath, json);
         }
