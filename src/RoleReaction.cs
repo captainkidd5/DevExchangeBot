@@ -109,7 +109,7 @@ namespace DevExchangeBot.RoleMenuSystem
 
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder()
             {
-                Color = new DiscordColor("#0000FF"),
+                Color = new DiscordColor("#5c89fb"),
                 Title = "Automatic Role Assignment",
                 Description = sb.ToString()
             };
