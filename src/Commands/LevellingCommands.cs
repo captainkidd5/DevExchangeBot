@@ -35,7 +35,7 @@ namespace DevExchangeBot.Commands
             await ctx.RespondAsync(new DiscordEmbedBuilder()
                 .WithTitle($"{mbr?.Username ?? ctx.Member.Username}#{mbr?.Discriminator ?? ctx.Member.Discriminator}'s {(rank == 1 ? Program.Config.Emoji.GoldMedal : null)} ranking stats:")
                 .WithDescription($"Level: **{user.Level}**\nEXP: **{user.Exp}**/{user.ExpToNextLevel}\nRank: **{rank}**/{orderedList.Count}")
-                .WithColor(new DiscordColor(34, 99, 131))
+                .WithColor(new DiscordColor(Program.Config.Color))
                 .WithThumbnail(mbr?.AvatarUrl ?? ctx.Member.AvatarUrl)
                 .WithTimestamp(DateTime.UtcNow)
                 .Build());
@@ -70,7 +70,7 @@ namespace DevExchangeBot.Commands
                 await message.DeleteAsync();
 
                 var pages = interactivity.GeneratePagesInEmbed(builder.ToString(), SplitType.Line, new DiscordEmbedBuilder()
-                    .WithColor(new DiscordColor(34, 99, 131))
+                    .WithColor(new DiscordColor(Program.Config.Color))
                     .WithTimestamp(DateTime.UtcNow));
 
                 await interactivity.SendPaginatedMessageAsync(ctx.Channel, ctx.User, pages);
@@ -78,7 +78,8 @@ namespace DevExchangeBot.Commands
             else
             {
                 var embed = new DiscordEmbedBuilder()
-                    .WithTitle("There's nothing to see here!");
+                    .WithDescription(":no_mouth: There's nothing to see here!")
+                    .WithColor(new DiscordColor(Program.Config.Color));
 
                 await message.DeleteAsync();
                 await ctx.Channel.SendMessageAsync(embed.Build());
@@ -104,7 +105,7 @@ namespace DevExchangeBot.Commands
 
             await ctx.RespondAsync(new DiscordEmbedBuilder()
                 .WithDescription($"{Program.Config.Emoji.Success} Level of {member.Mention} correctly set to {level}!")
-                .WithColor(new DiscordColor(34, 99, 131)));
+                .WithColor(new DiscordColor(Program.Config.Color)));
         }
 
         [Command("setmultiplier"), RequireUserPermissions(Permissions.Administrator)]
@@ -120,7 +121,7 @@ namespace DevExchangeBot.Commands
 
             await ctx.RespondAsync(new DiscordEmbedBuilder()
                 .WithDescription($"{Program.Config.Emoji.Success} EXP multiplier correctly set to {multiplier}!")
-                .WithColor(new DiscordColor(34, 99, 131)));
+                .WithColor(new DiscordColor(Program.Config.Color)));
         }
     }
 }

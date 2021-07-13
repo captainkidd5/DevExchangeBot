@@ -5,6 +5,7 @@ namespace DevExchangeBot.Configuration
     {
         public string Token { get; set; }
         public string Prefix { get; set; }
+        public string Color { get; set; }
 
         public EmojiConfigModel Emoji { get; set; }
     }

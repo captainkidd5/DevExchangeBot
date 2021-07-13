@@ -1,6 +1,7 @@
 {
   "Token": "<YOUR DISCORD BOT TOKEN HERE>",
   "Prefix": "dx!",
+  "Color": "#226383",
   "Emoji": {
     "Confetti": ":tada:",
     "GoldMedal": ":medal:",
