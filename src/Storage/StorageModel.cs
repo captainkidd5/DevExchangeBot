@@ -13,6 +13,8 @@ namespace DevExchangeBot.Storage
             Users.Add(user.Id, user);
         }
 
+        public RoleMenuModel RoleMenu { get; set; }
+
         public Dictionary<string, ulong> RolesByName { get; set; }
         public Dictionary<ulong, ulong> RolesByID { get; set; }
         public ulong RoleMenuMsgID { get; set; }
