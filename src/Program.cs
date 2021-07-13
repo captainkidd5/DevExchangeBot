@@ -43,6 +43,8 @@ namespace DevExchangeBot
 
             StorageContext.InitializeStorage();
 
+            src.RoleReaction.Initialize(_client);
+
             await _client.ConnectAsync();
             await Task.Delay(-1);
         }
