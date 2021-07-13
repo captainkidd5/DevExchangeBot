@@ -4,7 +4,12 @@
 .vscode/
 bin/
 obj/
+/.idea
 
 # Exclude the config.json containing runtime secrets
 # that should not appear in the commit history
 /config.json
+
+/Folder.DotSettings.user
+/emojis.json
+/DevExchangeBot.csproj.DotSettings
