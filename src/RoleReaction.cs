@@ -44,25 +44,9 @@ namespace DevExchangeBot.src
                 return;
             }
 
-            StringBuilder sb = new StringBuilder();
+            DiscordEmbed embed = CreateMenuEmbed(_ctx.Guild);
 
-            List<DiscordRole> discordRoles = new List<DiscordRole>();
-
-            foreach (KeyValuePair<string, ulong> pair in StorageContext.Model.Roles)
-            {
-                DiscordRole role = _ctx.Guild.GetRole(pair.Value);
-                discordRoles.Add(role);
-                sb.AppendLine($"{pair.Key} - {role.Name}");
-            }
-
-            DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder()
-            {
-                Color = new DiscordColor("#0000FF"),
-                Title = "Roles",
-                Description = sb.ToString()
-            };
-
-            DiscordMessage msg = await _ctx.Message.RespondAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
+            DiscordMessage msg = await _ctx.Message.RespondAsync(embed: embed).ConfigureAwait(false);
 
             foreach (string emojiName in StorageContext.Model.Roles.Keys)
             {
@@ -94,13 +78,28 @@ namespace DevExchangeBot.src
 
         private async Task UpdateRoleMenu(DiscordMessage _msg)
         {
+            DiscordEmbed embed = CreateMenuEmbed(_msg.Channel.Guild);
+
+            await _msg.ModifyAsync(embed).ConfigureAwait(false);
+
+            await _msg.DeleteAllReactionsAsync();
+
+            foreach (string emojiName in StorageContext.Model.Roles.Keys)
+            {
+                DiscordEmoji.TryFromUnicode(emojiName, out DiscordEmoji emoji);
+                await _msg.CreateReactionAsync(emoji);
+            }
+        }
+
+        private static DiscordEmbed CreateMenuEmbed(DiscordGuild _guild)
+        {
             StringBuilder sb = new StringBuilder();
 
             List<DiscordRole> discordRoles = new List<DiscordRole>();
 
             foreach (KeyValuePair<string, ulong> pair in StorageContext.Model.Roles)
             {
-                DiscordRole role = _msg.Channel.Guild.GetRole(pair.Value);
+                DiscordRole role = _guild.GetRole(pair.Value);
                 discordRoles.Add(role);
                 sb.AppendLine($"{pair.Key} - {role.Name}");
             }
@@ -112,20 +111,12 @@ namespace DevExchangeBot.src
                 Description = sb.ToString()
             };
 
-            await _msg.ModifyAsync(embedBuilder.Build()).ConfigureAwait(false);
-
-            await _msg.DeleteAllReactionsAsync();
-
-            foreach (string emojiName in StorageContext.Model.Roles.Keys)
-            {
-                DiscordEmoji.TryFromUnicode(emojiName, out DiscordEmoji emoji);
-                await _msg.CreateReactionAsync(emoji);
-            }
+            return embedBuilder.Build();
         }
 
         public static void Initialize(DiscordClient _client)
         {
-            if (StorageContext.Model.RoleMenuMsgID == 0) return;
+            if (StorageContext.Model.RoleMenuMsgID == 0 || StorageContext.Model.RoleMenuChannelID == 0) return;
 
             _client.MessageReactionAdded += OnReacted;
         }
