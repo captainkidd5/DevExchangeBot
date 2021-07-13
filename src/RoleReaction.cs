@@ -17,7 +17,7 @@ namespace DevExchangeBot.RoleMenuSystem
     public class RoleReaction : BaseCommandModule
     {
         [Command("roleMenuAdd"), Aliases("rma")]
-        [Description("Adds a role to the Role Menu (ulong roleID, ulong/string emojiID)")]
+        [Description("Adds a role to the Role Menu (@Role, :emoji:)")]
         [RequireUserPermissions(Permissions.Administrator)]
         public async Task AddRole(CommandContext _ctx, DiscordRole _role, DiscordEmoji _emoji)
         {
@@ -32,7 +32,7 @@ namespace DevExchangeBot.RoleMenuSystem
             await _ctx.RespondAsync($"Added role: {_role.Name} {_emoji}");
         }
 
-        [Command("rolMenuCreate"), Aliases("rmc")]
+        [Command("roleMenuCreate"), Aliases("rmc")]
         [Description("Creates a Role Menu in this channel")]
         [RequireUserPermissions(Permissions.Administrator)]
         public async Task CreateRoleMenu(CommandContext _ctx)
@@ -48,6 +48,24 @@ namespace DevExchangeBot.RoleMenuSystem
 
             StorageContext.Model.RoleMenu.RoleMenuMsgID = msg.Id;
             StorageContext.Model.RoleMenu.RoleMenuChannelID = msg.ChannelId;
+        }
+
+        // Just in case for some reason you want to switch the Role Menu
+        // without creating a new one
+        [Command("roleMenuMessage"), Aliases("rmm")]
+        [Description("Changes on which message the Role Menu should display (#channel, ulong MsgID)")]
+        [RequireUserPermissions(Permissions.Administrator)]
+        public async Task ChangeMessage(CommandContext _ctx, DiscordChannel _channel, ulong _msgID)
+        {
+            // Get the message
+            DiscordMessage msg = await _channel.GetMessageAsync(_msgID);
+
+            // Assign the new message id and channel id
+            StorageContext.Model.RoleMenu.RoleMenuMsgID = msg.Id;
+            StorageContext.Model.RoleMenu.RoleMenuChannelID = msg.ChannelId;
+
+            // Update Role Menu on the new message
+            await UpdateRoleMenu(msg);
         }
 
         private static async Task OnReacted(DiscordClient _sender, MessageReactionAddEventArgs _event)
@@ -85,7 +103,7 @@ namespace DevExchangeBot.RoleMenuSystem
             // Build the Description
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendLine(StorageContext.Model.RoleMenu.RoleMenuDescription);
+            sb.AppendLine(Program.Config.RoleMenu.RoleMenuDescription);
 
             // Build the Roles and Emojis
             foreach (DiscordEmoji emoji in StorageContext.Model.RoleMenu.GetAllEmojis())
@@ -98,7 +116,7 @@ namespace DevExchangeBot.RoleMenuSystem
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder()
             {
                 Color = new DiscordColor("#5c89fb"),
-                Title = StorageContext.Model.RoleMenu.RoleMenuTitle,
+                Title = Program.Config.RoleMenu.RoleMenuTitle,
                 Description = sb.ToString()
             };
 
@@ -112,15 +130,6 @@ namespace DevExchangeBot.RoleMenuSystem
             {
                 StorageContext.Model.RoleMenu = new Storage.Models.RoleMenuModel();
                 StorageContext.Model.RoleMenu.Roles = new List<Storage.Models.RoleMenuModel.RoleBind>();
-                StorageContext.Model.RoleMenu.RoleMenuTitle = "Automatic Role Assignment";
-
-                StringBuilder sb = new StringBuilder();
-
-                sb.AppendLine($"Welcome to our server! These roles will help you present yourself.");
-                sb.AppendLine($"Simply react to the message with the role you want and I will automagically give it to you.\n");
-                sb.AppendLine($"Note: If you wish you can click multiple reactions for more roles!");
-
-                StorageContext.Model.RoleMenu.RoleMenuDescription = sb.ToString();
             }
 
             // Listen to reactions on the Role Menu

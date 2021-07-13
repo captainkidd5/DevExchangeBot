@@ -12,5 +12,9 @@
     "CriticalError": ":bangbang:",
     "AccessDenied": ":raised_hand:",
     "Loading": ":pause_button:"
+  },
+  "RoleMenu": {
+    "RoleMenuTitle": "Automatic Role Assignment",
+    "RoleMenuDescription": "Welcome to our server! These roles will help you present yourself.\r\nSimply react to the message with the role you want and I will automagically give it to you.\n\r\nNote: If you wish you can click multiple reactions for more roles!\r\n"
   }
 }
