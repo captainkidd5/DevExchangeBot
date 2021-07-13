@@ -2,14 +2,15 @@
 # Using an editor that is not listed yet? Feel free to
 # add the config here!
 .vscode/
+.idea/
+*.DotSettings.user
+*.csproj.DotSettings
 bin/
 obj/
-/.idea
 
 # Exclude the config.json containing runtime secrets
 # that should not appear in the commit history
 /config.json
 
-/Folder.DotSettings.user
-/emojis.json
-/DevExchangeBot.csproj.DotSettings
+# Exlude the data storage file
+/storage.json

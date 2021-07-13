@@ -13,12 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="config.json" />
     <Content Include="config.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <None Remove="emojis.json" />
-    <Content Include="emojis.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

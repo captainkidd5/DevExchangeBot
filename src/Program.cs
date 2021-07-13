@@ -20,8 +20,8 @@ namespace DevExchangeBot
 {
     public static class Program
     {
-        private static DiscordClient _client;
-        private static ConfigModel _config;
+        public static DiscordClient Client { get; private set; }
+        public static ConfigModel Config { get; private set; }
 
         private static void Main()
         {
@@ -30,23 +30,23 @@ namespace DevExchangeBot
                 throw new FileNotFoundException("Configuration file could not be found.", "config.json");
 
             // Parse the content of the configuration file and fire up the MainAsync method.
-            _config = JsonConvert.DeserializeObject<ConfigModel>(File.ReadAllText("config.json"));
+            Config = JsonConvert.DeserializeObject<ConfigModel>(File.ReadAllText("config.json"));
             MainAsync().GetAwaiter().GetResult();
         }
 
         private static async Task MainAsync()
         {
             // Initialize a new client to establish a connection toe the Discord API.
-            _client = new DiscordClient(new DiscordConfiguration()
+            Client = new DiscordClient(new DiscordConfiguration()
             {
-                Token = _config.Token,
+                Token = Config.Token,
                 TokenType = TokenType.Bot,
                 Intents = DiscordIntents.All // TODO: Enable intents in the bot's application page
             });
 
-            _client.MessageCreated += ClientEvents.OnMessageCreated;
+            Client.MessageCreated += ClientEvents.OnMessageCreated;
 
-            var commands = _client.UseCommandsNext(new CommandsNextConfiguration()
+            var commands = Client.UseCommandsNext(new CommandsNextConfiguration()
             {
                 EnableDms = false,
                 EnableMentionPrefix = false,
@@ -54,21 +54,18 @@ namespace DevExchangeBot
             });
 
             commands.CommandErrored += OnCommandErrored;
-
             commands.RegisterCommands<LevellingCommands>();
 
-            _client.UseInteractivity(new InteractivityConfiguration()
+            Client.UseInteractivity(new InteractivityConfiguration()
             {
                 Timeout = TimeSpan.FromSeconds(30),
                 PaginationBehaviour = PaginationBehaviour.WrapAround,
                 PaginationDeletion = PaginationDeletion.DeleteEmojis
             });
 
-            Console.WriteLine(_config.Token);
-
             StorageContext.InitializeStorage();
 
-            await _client.ConnectAsync();
+            await Client.ConnectAsync();
             await Task.Delay(-1);
         }
 
@@ -97,7 +94,7 @@ namespace DevExchangeBot
                             {
                                 Title = "Permission denied",
                                 Description =
-                                    $"{Emojis.AccessDenied} You lack permissions necessary to run this command.",
+                                    $"{Program.Config.Emoji.AccessDenied} You lack permissions necessary to run this command.",
                                 Color = new DiscordColor(0xFF0000)
                             };
 
@@ -105,8 +102,7 @@ namespace DevExchangeBot
                             embed = new DiscordEmbedBuilder
                             {
                                 Title = "Permission denied",
-                                Description =
-                                    $"{Emojis.AccessDenied} The bot is lacking permissions necessary to run this command.",
+                                Description = $"{Program.Config.Emoji.AccessDenied} The bot is lacking permissions necessary to run this command.",
                                 Color = new DiscordColor(0xFF0000)
                             };
 
@@ -114,8 +110,7 @@ namespace DevExchangeBot
                             embed = new DiscordEmbedBuilder
                             {
                                 Title = "Permission denied",
-                                Description =
-                                    $"{Emojis.AccessDenied} Only the owner can run this command.",
+                                Description = $"{Program.Config.Emoji.AccessDenied} Only the owner can run this command.",
                                 Color = new DiscordColor(0xFF0000)
                             };
 
@@ -123,8 +118,7 @@ namespace DevExchangeBot
                             embed = new DiscordEmbedBuilder
                             {
                                 Title = "Permission denied",
-                                Description =
-                                    $"{Emojis.Loading} This command is under cooldown, please wait.",
+                                Description = $"{Program.Config.Emoji.Loading} This command is under cooldown, please wait.",
                                 Color = new DiscordColor(0xFF0000)
                             };
 
@@ -132,16 +126,13 @@ namespace DevExchangeBot
                     }
 
                     case ArgumentException:
-                        await e.Context.RespondAsync(
-                            $"{Emojis.Fail} Oops, you used a wrong argument. Use ``{e.Context.Prefix}help {e.Command?.QualifiedName}`` to get info.");
+                        await e.Context.RespondAsync($"{Program.Config.Emoji.Failure} Oops, you used a wrong argument. Use ``{e.Context.Prefix}help {e.Command?.QualifiedName}`` to get info.");
                         break;
-
                     default:
                         embed = new DiscordEmbedBuilder
                         {
                             Title = "A problem occured while executing the command",
-                            Description =
-                                $"{Emojis.CriticalError} {Formatter.InlineCode(e.Command?.QualifiedName)} threw an exception: `{ex?.GetType()}: {ex?.Message}`",
+                            Description = $"{Program.Config.Emoji.CriticalError} {Formatter.InlineCode(e.Command?.QualifiedName)} threw an exception: `{ex?.GetType()}: {ex?.Message}`",
                             Color = new DiscordColor(0xFF0000)
                         };
                         break;

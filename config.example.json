@@ -1,3 +1,14 @@
 {
-  "Token": "<YOUR DISCORD BOT TOKEN HERE>"
+  "Token": "<YOUR DISCORD BOT TOKEN HERE>",
+  "Emojis": {
+    "Confetti": ":tada:",
+    "GoldMedal": ":medal:",
+    "SilverMedal": ":second_place:",
+    "BronzeMedal": ":third_place:",
+    "Success": ":white_check_mark:",
+    "Failure": ":x:",
+    "CriticalError": ":bangbang:",
+    "AccessDenied": ":raised_hand:",
+    "Loading": ":pause_button:"
+  }
 }

@@ -34,7 +34,7 @@ namespace DevExchangeBot
                 usrData.Xp -= usrData.XpToNextLevel;
                 usrData.Level += 1;
 
-                await e.Channel.SendMessageAsync($"{Emojis.Confetti} {e.Author.Mention} advanced to level {usrData.Level}!");
+                await e.Channel.SendMessageAsync($"{Program.Config.Emoji.Confetti} {e.Author.Mention} advanced to level {usrData.Level}!");
             }
         }
     }
