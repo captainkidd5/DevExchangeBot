@@ -12,7 +12,7 @@ using DSharpPlus.Interactivity;
 using DSharpPlus.CommandsNext.Attributes;
 using DevExchangeBot.Storage;
 
-namespace DevExchangeBot.src
+namespace DevExchangeBot.RoleMenuSystem
 {
     public class RoleReaction : BaseCommandModule
     {
@@ -39,7 +39,7 @@ namespace DevExchangeBot.src
         [Command("roleMenu")]
         public async Task CreateRoleMenu(CommandContext _ctx)
         {
-            if (StorageContext.Model.Roles.Count == 0)
+            if (StorageContext.Model.Roles?.Count == 0)
             {
                 await _ctx.RespondAsync("You should add roles first...");
                 return;
@@ -49,13 +49,14 @@ namespace DevExchangeBot.src
 
             DiscordMessage msg = await _ctx.Message.RespondAsync(embed: embed).ConfigureAwait(false);
 
-            foreach (string emojiName in StorageContext.Model.Roles.Keys)
+            if (StorageContext.Model.Roles != null)
             {
-                DiscordEmoji.TryFromUnicode(emojiName, out DiscordEmoji emoji);
-                await msg.CreateReactionAsync(emoji);
+                foreach (string emojiName in StorageContext.Model.Roles.Keys)
+                {
+                    DiscordEmoji.TryFromUnicode(emojiName, out DiscordEmoji emoji);
+                    await msg.CreateReactionAsync(emoji);
+                }
             }
-
-            //_ctx.Client.MessageReactionAdded += OnReacted;
 
             StorageContext.Model.RoleMenuMsgID = msg.Id;
             StorageContext.Model.RoleMenuChannelID = msg.ChannelId;
@@ -66,13 +67,12 @@ namespace DevExchangeBot.src
         /// </summary>
         public static async Task OnReacted(DiscordClient _sender, MessageReactionAddEventArgs _event)
         {
-            if (_event.User.IsBot) return;
+            if (_event.User.IsBot && _event.Message.Id == StorageContext.Model.RoleMenuMsgID) return;
 
             StorageContext.Model.Roles.TryGetValue(_event.Emoji.Name, out ulong roleID);
 
             DiscordMember member = (DiscordMember)_event.User;
 
-            //await member.GrantRoleAsync(roleToGrant);
             await member.GrantRoleAsync(_event.Guild.GetRole(roleID)).ConfigureAwait(false);
             await _event.Message.DeleteReactionAsync(_event.Emoji, _event.User).ConfigureAwait(false);
         }
@@ -98,11 +98,14 @@ namespace DevExchangeBot.src
 
             List<DiscordRole> discordRoles = new List<DiscordRole>();
 
-            foreach (KeyValuePair<string, ulong> pair in StorageContext.Model.Roles)
+            if (StorageContext.Model.Roles != null)
             {
-                DiscordRole role = _guild.GetRole(pair.Value);
-                discordRoles.Add(role);
-                sb.AppendLine($"{pair.Key} - {role.Name}");
+                foreach (KeyValuePair<string, ulong> pair in StorageContext.Model.Roles)
+                {
+                    DiscordRole role = _guild.GetRole(pair.Value);
+                    discordRoles.Add(role);
+                    sb.AppendLine($"{pair.Key} - {role.Name}");
+                }
             }
 
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder()
@@ -118,6 +121,11 @@ namespace DevExchangeBot.src
         public static void Initialize(DiscordClient _client)
         {
             if (StorageContext.Model.RoleMenuMsgID == 0 || StorageContext.Model.RoleMenuChannelID == 0) return;
+
+            if (StorageContext.Model.Roles == null)
+            {
+                StorageContext.Model.Roles = new Dictionary<string, ulong>();
+            }
 
             _client.MessageReactionAdded += OnReacted;
         }

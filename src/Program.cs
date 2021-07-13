@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -55,6 +55,7 @@ namespace DevExchangeBot
 
             commands.CommandErrored += OnCommandErrored;
             commands.RegisterCommands<LevellingCommands>();
+            commands.RegisterCommands<RoleMenuSystem.RoleReaction>();
 
             Client.UseInteractivity(new InteractivityConfiguration()
             {
@@ -65,6 +66,8 @@ namespace DevExchangeBot
 
             StorageContext.InitializeStorage();
             AppDomain.CurrentDomain.UnhandledException += StorageContext.SaveData;
+
+            RoleMenuSystem.RoleReaction.Initialize(Client);
 
             await Client.ConnectAsync();
             await Task.Delay(-1);
