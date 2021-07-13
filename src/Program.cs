@@ -1,9 +1,11 @@
-﻿using System.IO;
+using System.IO;
 using System.Threading.Tasks;
 using DSharpPlus;
 using Newtonsoft.Json;
 using DevExchangeBot.Configuration;
 using DevExchangeBot.Storage;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
 
 namespace DevExchangeBot
 {
@@ -29,10 +31,15 @@ namespace DevExchangeBot
             _client = new DiscordClient(new DiscordConfiguration()
             {
                 Token = _config.Token,
-                TokenType = TokenType.Bot,
+                TokenType = TokenType.Bot
             });
 
-            System.Console.WriteLine(_config.Token);
+            CommandsNextExtension commands = _client.UseCommandsNext(new CommandsNextConfiguration()
+            {
+                StringPrefixes = new[] { "!" }
+            });
+
+            commands.RegisterCommands<src.RoleReaction>();
 
             StorageContext.InitializeStorage();
 
