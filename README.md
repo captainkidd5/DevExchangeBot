@@ -11,8 +11,15 @@ and name it `config.json`.
 
 Paste the bot token of the newly created Discord application in the `Token` field
 of the configuration file. Take the bot for a test drive by compiling and running
-the program using your favorite IDE of text editor. Don't forget to add the bot
-to a server to see it in action!
+the program using your favorite IDE of text editor.
+
+Now, open up a terminal and run the following commands to pull in the latest
+DSharpPlus NuGet sources and restore the project's dependencies:
+```
+dotnet nuget add source https://nuget.emzi0767.com/api/v3/index.json
+dotnet restore
+```
+Don't forget to add the bot to a server to see it in action!
 
 ## Roadmap
 Of course, everyone is free to add features to their own liking by taking a fork,
