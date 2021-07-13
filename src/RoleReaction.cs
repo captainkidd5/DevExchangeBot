@@ -39,15 +39,9 @@ namespace DevExchangeBot.RoleMenuSystem
         [Command("roleMenu")]
         public async Task CreateRoleMenu(CommandContext _ctx)
         {
-            if (StorageContext.Model.Roles?.Count == 0)
-            {
-                await _ctx.RespondAsync("You should add roles first...");
-                return;
-            }
-
             DiscordEmbed embed = CreateMenuEmbed(_ctx.Guild);
 
-            DiscordMessage msg = await _ctx.Message.RespondAsync(embed: embed).ConfigureAwait(false);
+            DiscordMessage msg = await _ctx.Client.SendMessageAsync(_ctx.Channel, embed);
 
             if (StorageContext.Model.Roles != null)
             {
@@ -67,7 +61,8 @@ namespace DevExchangeBot.RoleMenuSystem
         /// </summary>
         public static async Task OnReacted(DiscordClient _sender, MessageReactionAddEventArgs _event)
         {
-            if (_event.User.IsBot && _event.Message.Id == StorageContext.Model.RoleMenuMsgID) return;
+            if (StorageContext.Model.RoleMenuMsgID == 0 || StorageContext.Model.RoleMenuChannelID == 0) return; // Role Menu Not Created
+            if (_event.User.IsBot || _event.Message.Id != StorageContext.Model.RoleMenuMsgID) return; // Reaction Not On Role Menu
 
             StorageContext.Model.Roles.TryGetValue(_event.Emoji.Name, out ulong roleID);
 
@@ -96,6 +91,10 @@ namespace DevExchangeBot.RoleMenuSystem
         {
             StringBuilder sb = new StringBuilder();
 
+            sb.AppendLine($"Welcome to {_guild.Name}! These roles will help you present yourself in our server.");
+            sb.AppendLine($"Simply react to the message with the role you want and I will automagically give it to you.\n");
+            sb.AppendLine($"Note: If you wish you can click multiple reactions for more roles!\n");
+
             List<DiscordRole> discordRoles = new List<DiscordRole>();
 
             if (StorageContext.Model.Roles != null)
@@ -111,7 +110,7 @@ namespace DevExchangeBot.RoleMenuSystem
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder()
             {
                 Color = new DiscordColor("#0000FF"),
-                Title = "Roles",
+                Title = "Automatic Role Assignment",
                 Description = sb.ToString()
             };
 
@@ -120,8 +119,6 @@ namespace DevExchangeBot.RoleMenuSystem
 
         public static void Initialize(DiscordClient _client)
         {
-            if (StorageContext.Model.RoleMenuMsgID == 0 || StorageContext.Model.RoleMenuChannelID == 0) return;
-
             if (StorageContext.Model.Roles == null)
             {
                 StorageContext.Model.Roles = new Dictionary<string, ulong>();
