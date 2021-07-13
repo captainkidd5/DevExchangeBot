@@ -19,7 +19,7 @@ DSharpPlus NuGet sources and restore the project's dependencies:
 dotnet nuget add source https://nuget.emzi0767.com/api/v3/index.json
 dotnet restore
 ```
-Don't forget to add the bot to a server to see it in action!
+Don't forget to enable all intents and add the bot to a server to see it in action!
 
 ## Roadmap
 Of course, everyone is free to add features to their own liking by taking a fork,
