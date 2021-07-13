@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using DevExchangeBot.Configuration;
-using DevExchangeBot.Models;
 using DevExchangeBot.Storage;
+using DevExchangeBot.Storage.Models;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
 
@@ -13,28 +12,26 @@ namespace DevExchangeBot
     {
         public static async Task OnMessageCreated(DiscordClient sender, MessageCreateEventArgs e)
         {
-            if (e.Author.IsBot || e.Message.Content.StartsWith("dx!")) return; // TODO: Change prefix here if you changed it in the configuration
+            if (e.Author.IsBot || e.Message.Content.StartsWith("dx!"))
+                return; // TODO: Change prefix here if you changed it in the configuration
 
-            if (!StorageContext.Model.UserDictionary.TryGetValue(e.Author.Id, out var usrData))
+            if (!StorageContext.Model.Users.TryGetValue(e.Author.Id, out var user))
             {
-                usrData = new UserData(e.Author.Id);
-                StorageContext.Model.UserDictionary.Add(e.Author.Id, usrData);
+                user = new UserModel(e.Author.Id);
+                StorageContext.Model.AddUser(user);
             }
 
-            var message = e.Message.Content;
+            var content = e.Message.Content;
 
-            Regex.Replace(message, ":[0-9a-z]+:", "0", RegexOptions.IgnoreCase);
+            Regex.Replace(content, ":[0-9a-z]+:", "0", RegexOptions.IgnoreCase);
+            user.Exp += (int)Math.Round(content.Length / 2D * StorageContext.Model.ExpMultiplier, MidpointRounding.ToZero);
 
-            var xpToAdd = (int) Math.Round(message.Length / 2D * StorageContext.Model.XpMultiplier, MidpointRounding.ToZero);
-
-            usrData.Xp += xpToAdd;
-
-            if (usrData.Xp > usrData.XpToNextLevel)
+            if (user.Exp > user.ExpToNextLevel)
             {
-                usrData.Xp -= usrData.XpToNextLevel;
-                usrData.Level += 1;
+                user.Exp -= user.ExpToNextLevel;
+                user.Level += 1;
 
-                await e.Channel.SendMessageAsync($"{Program.Config.Emoji.Confetti} {e.Author.Mention} advanced to level {usrData.Level}!");
+                await e.Channel.SendMessageAsync($"{Program.Config.Emoji.Confetti} {e.Author.Mention} advanced to level {user.Level}!");
             }
         }
     }

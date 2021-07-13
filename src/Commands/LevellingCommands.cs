@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DevExchangeBot.Models;
 using DevExchangeBot.Storage;
+using DevExchangeBot.Storage.Models;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
@@ -18,23 +18,23 @@ namespace DevExchangeBot.Commands
         [Command("rank"), Aliases("r")]
         public async Task Rank(CommandContext ctx, DiscordMember mbr = null)
         {
-            var talked = StorageContext.Model.UserDictionary.TryGetValue(mbr?.Id ?? ctx.Member.Id, out var usrData);
+            var talked = StorageContext.Model.Users.TryGetValue(mbr?.Id ?? ctx.Member.Id, out var user);
 
-            if (usrData == null || usrData.Xp == 0 || !talked)
+            if (user == null || user.Exp == 0 || !talked)
             {
                 await ctx.RespondAsync(":no_mouth: This user didn't talk yet");
                 return;
             }
 
-            var uList = StorageContext.Model.UserDictionary.Values
-                .OrderByDescending(u => u.Level).ThenByDescending(u => u.Xp).ToList();
+            var orderedList = StorageContext.Model.Users.Values
+                .OrderByDescending(u => u.Level)
+                .ThenByDescending(u => u.Exp).ToList();
 
-            var rank = uList.IndexOf(usrData) + 1;
+            var rank = orderedList.IndexOf(user) + 1;
 
             await ctx.RespondAsync(new DiscordEmbedBuilder()
-                // TODO: Add proper ranking for silver and bronze medals here
                 .WithTitle($"{mbr?.Username ?? ctx.Member.Username}#{mbr?.Discriminator ?? ctx.Member.Discriminator}'s {(rank == 1 ? Program.Config.Emoji.GoldMedal : null)} ranking stats:")
-                .WithDescription($"Level: **{usrData.Level}**\nEXP: **{usrData.Xp}**/{usrData.XpToNextLevel}\nRank: **{rank}**/{uList.Count}")
+                .WithDescription($"Level: **{user.Level}**\nEXP: **{user.Exp}**/{user.ExpToNextLevel}\nRank: **{rank}**/{orderedList.Count}")
                 .WithColor(new DiscordColor(34, 99, 131))
                 .WithThumbnail(mbr?.AvatarUrl ?? ctx.Member.AvatarUrl)
                 .WithTimestamp(DateTime.UtcNow)
@@ -47,22 +47,23 @@ namespace DevExchangeBot.Commands
             await ctx.TriggerTypingAsync();
             var message = await ctx.RespondAsync($"{Program.Config.Emoji.Loading} Bot is thinking...");
 
-            var orderedList = StorageContext.Model.UserDictionary.Values.OrderByDescending(u => u.Level)
-                .ThenByDescending(u => u.Xp).ToList();
-
-            if (orderedList.Count > 0)
+            if (StorageContext.Model.Users.Count > 0)
             {
+                var orderedList = StorageContext.Model.Users.Values
+                    .OrderByDescending(u => u.Level)
+                    .ThenByDescending(u => u.Exp).ToList();
+
                 var builder = new StringBuilder();
-                var count = 1;
+                var index = 1;
 
-                foreach (var userData in orderedList)
+                foreach (var user in orderedList)
                 {
-                    var user = await ctx.Guild.GetMemberAsync(userData.Id);
+                    var member = await ctx.Guild.GetMemberAsync(user.Id);
 
-                    builder.AppendLine($"{count}. {user.Mention} Level: {userData.Level} | EXP: {userData.Xp}/{userData.XpToNextLevel} " +
-                        $"{(count switch { 1 => Program.Config.Emoji.GoldMedal, 2 => Program.Config.Emoji.SilverMedal, 3 => Program.Config.Emoji.BronzeMedal, _ => null })}");
+                    builder.AppendLine($"{index}. {member.Mention} Level: {user.Level} | EXP: {user.Exp}/{user.ExpToNextLevel} " +
+                        $"{(index switch { 1 => Program.Config.Emoji.GoldMedal, 2 => Program.Config.Emoji.SilverMedal, 3 => Program.Config.Emoji.BronzeMedal, _ => null })}");
 
-                    count++;
+                    ++index;
                 }
 
                 var interactivity = ctx.Client.GetInteractivity();
@@ -93,18 +94,16 @@ namespace DevExchangeBot.Commands
                 return;
             }
 
-            if (!StorageContext.Model.UserDictionary.TryGetValue(member.Id, out var usrData))
+            if (!StorageContext.Model.Users.TryGetValue(member.Id, out var user))
             {
-                usrData = new UserData(member.Id);
-                StorageContext.Model.UserDictionary.Add(member.Id, usrData);
+                user = new UserModel(member.Id);
+                StorageContext.Model.AddUser(user);
             }
 
-            usrData.Level = level;
+            user.Level = level;
 
-            await ctx.RespondAsync(new DiscordEmbedBuilder
-                {
-                    Description = $"{Program.Config.Emoji.Success} Level of {member.Mention} correctly set to {level}!"
-                }
+            await ctx.RespondAsync(new DiscordEmbedBuilder()
+                .WithDescription($"{Program.Config.Emoji.Success} Level of {member.Mention} correctly set to {level}!")
                 .WithColor(new DiscordColor(34, 99, 131)));
         }
 
@@ -117,12 +116,10 @@ namespace DevExchangeBot.Commands
                 return;
             }
 
-            StorageContext.Model.XpMultiplier = multiplier;
+            StorageContext.Model.ExpMultiplier = multiplier;
 
             await ctx.RespondAsync(new DiscordEmbedBuilder()
-                {
-                    Description = $"{Program.Config.Emoji.Success} EXP multiplier correctly set to {multiplier}!"
-                }
+                .WithDescription($"{Program.Config.Emoji.Success} EXP multiplier correctly set to {multiplier}!")
                 .WithColor(new DiscordColor(34, 99, 131)));
         }
     }

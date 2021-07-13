@@ -1,13 +1,16 @@
 ﻿using System.Collections.Generic;
-using DevExchangeBot.Models;
+using DevExchangeBot.Storage.Models;
 
 namespace DevExchangeBot.Storage
 {
     public class StorageModel
     {
-        public Dictionary<ulong, UserData> UserDictionary { get; set; }
+        public Dictionary<ulong, UserModel> Users { get; set; }
+        public float ExpMultiplier { get; set; }
 
-        // EXP related settings
-        public float XpMultiplier { get; set; }
+        public void AddUser(UserModel user)
+        {
+            Users.Add(user.Id, user);
+        }
     }
 }
