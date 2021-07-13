@@ -26,7 +26,8 @@ namespace DevExchangeBot.src
             if (StorageContext.Model.Roles == null) StorageContext.Model.Roles = new Dictionary<string, ulong>();
             StorageContext.Model.Roles.Add(_emojiName, _roleID);
 
-            await UpdateRoleMenu(await _ctx.Channel.GetMessageAsync(StorageContext.Model.RoleMenuMsgID));
+            DiscordChannel channel = await _ctx.Client.GetChannelAsync(StorageContext.Model.RoleMenuChannelID);
+            await UpdateRoleMenu(await channel.GetMessageAsync(StorageContext.Model.RoleMenuMsgID));
 
             await _ctx.RespondAsync($"Added role: {role.Name} {emoji}");
 
