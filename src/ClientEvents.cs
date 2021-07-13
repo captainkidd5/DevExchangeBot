@@ -12,8 +12,8 @@ namespace DevExchangeBot
     {
         public static async Task OnMessageCreated(DiscordClient sender, MessageCreateEventArgs e)
         {
-            if (e.Author.IsBot || e.Message.Content.StartsWith("dx!"))
-                return; // TODO: Change prefix here if you changed it in the configuration
+            if (e.Author.IsBot || e.Message.Content.StartsWith(Program.Config.Prefix))
+                return;
 
             if (!StorageContext.Model.Users.TryGetValue(e.Author.Id, out var user))
             {

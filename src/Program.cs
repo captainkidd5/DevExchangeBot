@@ -50,7 +50,7 @@ namespace DevExchangeBot
             {
                 EnableDms = false,
                 EnableMentionPrefix = false,
-                StringPrefixes = new [] {"dx!"} // TODO: Change the prefix if needed
+                StringPrefixes = new [] { Program.Config.Prefix }
             });
 
             commands.CommandErrored += OnCommandErrored;

@@ -1,5 +1,6 @@
 {
   "Token": "<YOUR DISCORD BOT TOKEN HERE>",
+  "Prefix": "dx!",
   "Emoji": {
     "Confetti": ":tada:",
     "GoldMedal": ":medal:",
