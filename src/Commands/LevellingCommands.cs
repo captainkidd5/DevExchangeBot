@@ -45,33 +45,43 @@ namespace DevExchangeBot.Commands
         public async Task Leaderboard(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
-
             var message = await ctx.RespondAsync($"{Program.Config.Emoji.Loading} Bot is thinking...");
 
-            var orderedList = StorageContext.Model.UserDictionary.Values
-                .OrderByDescending(u => u.Level).ThenByDescending(u => u.Xp).ToList();
+            var orderedList = StorageContext.Model.UserDictionary.Values.OrderByDescending(u => u.Level)
+                .ThenByDescending(u => u.Xp).ToList();
 
-            var builder = new StringBuilder();
-            var count = 1;
-
-            foreach (var userData in orderedList)
+            if (orderedList.Count > 0)
             {
-                var user = await ctx.Guild.GetMemberAsync(userData.Id);
+                var builder = new StringBuilder();
+                var count = 1;
 
-                builder.AppendLine($"{count}. {user.Mention} Level: {userData.Level} | EXP: {userData.Xp}/{userData.XpToNextLevel} " +
-                    $"{(count switch { 1 => Program.Config.Emoji.GoldMedal, 2 => Program.Config.Emoji.SilverMedal, 3 => Program.Config.Emoji.BronzeMedal, _ => null })}");
+                foreach (var userData in orderedList)
+                {
+                    var user = await ctx.Guild.GetMemberAsync(userData.Id);
 
-                count++;
+                    builder.AppendLine($"{count}. {user.Mention} Level: {userData.Level} | EXP: {userData.Xp}/{userData.XpToNextLevel} " +
+                        $"{(count switch { 1 => Program.Config.Emoji.GoldMedal, 2 => Program.Config.Emoji.SilverMedal, 3 => Program.Config.Emoji.BronzeMedal, _ => null })}");
+
+                    count++;
+                }
+
+                var interactivity = ctx.Client.GetInteractivity();
+                await message.DeleteAsync();
+
+                var pages = interactivity.GeneratePagesInEmbed(builder.ToString(), SplitType.Line, new DiscordEmbedBuilder()
+                    .WithColor(new DiscordColor(34, 99, 131))
+                    .WithTimestamp(DateTime.UtcNow));
+
+                await interactivity.SendPaginatedMessageAsync(ctx.Channel, ctx.User, pages);
             }
+            else
+            {
+                var embed = new DiscordEmbedBuilder()
+                    .WithTitle("There's nothing to see here!");
 
-            var interactivity = ctx.Client.GetInteractivity();
-            await message.DeleteAsync();
-
-            var pages = interactivity.GeneratePagesInEmbed(builder.ToString(), SplitType.Line, new DiscordEmbedBuilder()
-                .WithColor(new DiscordColor(34, 99, 131))
-                .WithTimestamp(DateTime.UtcNow));
-
-            await interactivity.SendPaginatedMessageAsync(ctx.Channel, ctx.User, pages);
+                await message.DeleteAsync();
+                await ctx.Channel.SendMessageAsync(embed.Build());
+            }
         }
 
         [Command("setlevel"), RequireUserPermissions(Permissions.Administrator)]

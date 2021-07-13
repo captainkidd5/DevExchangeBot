@@ -1,6 +1,6 @@
 {
   "Token": "<YOUR DISCORD BOT TOKEN HERE>",
-  "Emojis": {
+  "Emoji": {
     "Confetti": ":tada:",
     "GoldMedal": ":medal:",
     "SilverMedal": ":second_place:",
