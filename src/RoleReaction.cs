@@ -15,17 +15,17 @@ namespace DevExchangeBot.src
 {
     public class RoleReaction : BaseCommandModule
     {
-        Dictionary<DiscordEmoji, DiscordRole> roles = new Dictionary<DiscordEmoji, DiscordRole>();
-
         [Command("addRole"), Description("Adds a role to Display in the Role Menu (ulong roleID, string _unicodeEmoji)")]
         public async Task AddRole(CommandContext _ctx, ulong _roleID, string _emojiName)
         {
-            await _ctx.RespondAsync("Adding");
-
             DiscordRole role = _ctx.Guild.GetRole(_roleID);
             DiscordEmoji.TryFromUnicode(_ctx.Client, _emojiName, out DiscordEmoji emoji);
 
-            roles.Add(emoji, role);
+            if (Storage.StorageContext.Model == null) Storage.StorageContext.Model = new Storage.StorageModel();
+            if (Storage.StorageContext.Model.Roles == null) Storage.StorageContext.Model.Roles = new Dictionary<string, ulong>();
+            Storage.StorageContext.Model.Roles.Add(_emojiName, _roleID);
+
+            await _ctx.RespondAsync($"Added role: {role.Name} {emoji}");
         }
 
         /// <summary>
@@ -34,19 +34,21 @@ namespace DevExchangeBot.src
         [Command("roleMenu")]
         public async Task CreateRoleMenu(CommandContext _ctx)
         {
-            if (roles.Count == 0)
+            if (Storage.StorageContext.Model.Roles.Count == 0)
             {
                 await _ctx.RespondAsync("You should add roles first...");
                 return;
             }
 
-            DiscordRole[] discordRoles = roles.Values.ToArray();
-
             StringBuilder sb = new StringBuilder();
 
-            foreach (KeyValuePair<DiscordEmoji, DiscordRole> pair in roles)
+            List<DiscordRole> discordRoles = new List<DiscordRole>();
+
+            foreach (KeyValuePair<string, ulong> pair in Storage.StorageContext.Model.Roles)
             {
-                sb.AppendLine($"{pair.Key} - {pair.Value.Name}");
+                DiscordRole role = _ctx.Guild.GetRole(pair.Value);
+                discordRoles.Add(role);
+                sb.AppendLine($"{pair.Key} - {role.Name}");
             }
 
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder()
@@ -58,8 +60,9 @@ namespace DevExchangeBot.src
 
             DiscordMessage msg = await _ctx.Message.RespondAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
 
-            foreach (DiscordEmoji emoji in roles.Keys)
+            foreach (string emojiName in Storage.StorageContext.Model.Roles.Keys)
             {
+                DiscordEmoji.TryFromUnicode(emojiName, out DiscordEmoji emoji);
                 await msg.CreateReactionAsync(emoji);
             }
 
@@ -73,11 +76,12 @@ namespace DevExchangeBot.src
         {
             if (_event.User.IsBot) return;
 
-            roles.TryGetValue(_event.Emoji, out DiscordRole roleToGrant);
+            Storage.StorageContext.Model.Roles.TryGetValue(_event.Emoji.Name, out ulong roleID);
 
             DiscordMember member = (DiscordMember)_event.User;
 
-            await member.GrantRoleAsync(roleToGrant);
+            //await member.GrantRoleAsync(roleToGrant);
+            await member.GrantRoleAsync(_event.Guild.GetRole(roleID));
             await _event.Message.DeleteReactionAsync(_event.Emoji, _event.User).ConfigureAwait(false);
         }
     }

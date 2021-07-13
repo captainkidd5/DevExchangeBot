@@ -16,8 +16,4 @@
     <None Update="config.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="src\Commands\" />
-  </ItemGroup>
-
 </Project>
