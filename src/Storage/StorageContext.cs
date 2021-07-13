@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Timers;
+using DevExchangeBot.Storage.Models;
 using Newtonsoft.Json;
 
 namespace DevExchangeBot.Storage
@@ -19,8 +21,6 @@ namespace DevExchangeBot.Storage
             var currentProcess = Process.GetCurrentProcess();
             currentProcess.Exited += SaveData;
 
-            AppDomain.CurrentDomain.UnhandledException += SaveData;
-
             // Set up a timer to save data every 30 seconds
             SaveTimer = new Timer
             {
@@ -33,20 +33,27 @@ namespace DevExchangeBot.Storage
 
             if (!File.Exists(FilePath))
             {
-                File.Create(FilePath);
-                File.WriteAllText(FilePath, "{}");
+                var fs = File.Create(FilePath);
+                fs.Dispose();
             }
 
             // Retrieve the data and load the static object with it
-            Model = JsonConvert.DeserializeObject<StorageModel>(File.ReadAllText(FilePath));
+            Model = JsonConvert.DeserializeObject<StorageModel>(File.ReadAllText(FilePath)) ?? new StorageModel
+            {
+                Users = new Dictionary<ulong, UserModel>(),
+                ExpMultiplier = 1
+            };
         }
 
-        private static void SaveData(object sender, EventArgs eventArgs)
+        public static void SaveData(object sender, EventArgs eventArgs)
         {
             var json = JsonConvert.SerializeObject(Model, Formatting.Indented);
 
             if (!File.Exists(FilePath))
-                File.Create(FilePath);
+            {
+                var fs = File.Create(FilePath);
+                fs.Dispose();
+            }
 
             File.WriteAllText(FilePath, json);
         }

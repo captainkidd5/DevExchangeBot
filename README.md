@@ -11,8 +11,15 @@ and name it `config.json`.
 
 Paste the bot token of the newly created Discord application in the `Token` field
 of the configuration file. Take the bot for a test drive by compiling and running
-the program using your favorite IDE of text editor. Don't forget to add the bot
-to a server to see it in action!
+the program using your favorite IDE of text editor.
+
+Now, open up a terminal and run the following commands to pull in the latest
+DSharpPlus NuGet sources and restore the project's dependencies:
+```
+dotnet nuget add source https://nuget.emzi0767.com/api/v3/index.json
+dotnet restore
+```
+Don't forget to enable all intents and add the bot to a server to see it in action!
 
 ## Roadmap
 Of course, everyone is free to add features to their own liking by taking a fork,
@@ -24,8 +31,12 @@ Although we do have some ideas as for which features we'd like to see added to t
 bot. These features include:
 
 - A self-service role assignment system where members pick their own roles by reacting with emojis;
-- A virtual "pet" that the Dev Exchange community as a whole is intended to take care of;
-- A levelling system.
+- A "virtual pet" that the Dev Exchange community takes care of;
+- A levelling system where you gain experience based on how much you talk;
+- A heart counter for the :pxheart: emoji to show some interesting statistics.
+
+**NOTE:** If you want to work on a feature, please open an issue to let others
+know that the feature is being worked on already!
 
 If you have any other features you'd like to see added to this list, feel free to
 open an issue on the matter.
@@ -35,6 +46,7 @@ Contributions are always welcome! Although there are a few guidelines contributo
 should follow up with. These guidelines will mostly cover code style.
 
 - Pull requests should be done based on the `develop` branch;
+- It is recommended to work on a separate branch on your own fork of the project, e.g. `patch-1`, `patch-2`, etc.
 - Use tabs instead of spaces;
 - The keyword `var` is preferred over strong type declarations where possible;
 - Project files and binary output files should go in the `.gitignore` file;
