@@ -15,11 +15,11 @@ namespace DevExchangeBot.Storage.Models
         public string RoleMenuTitle { get; set; }
         public string RoleMenuDescription { get; set; }
 
-        // DiscordEmoji.FromName doesn't work with Unicode
-        // and DiscordEmoji.FromUnicode doesn't work with Custom Guild Emojis
+        // DiscordEmoji.FromName() doesn't work with Unicode
+        // and DiscordEmoji.FromUnicode() doesn't work with Custom Guild Emojis
         // So we have to do this stupid thing where Unicode emojis have no ID and Guild Emojis have no Unicode
         // and when getting the Role we check if the RoleBind id is 0
-        // if it is then we yoink it via DiscordEmoji.FromUnicode otherwise DiscordEmoji.FromGuildEmote
+        // if it is then we yoink it via DiscordEmoji.FromUnicode() otherwise DiscordEmoji.FromGuildEmote()
 
         // If anyone wants to fix it => I wish you good luck.
 
@@ -34,6 +34,7 @@ namespace DevExchangeBot.Storage.Models
         {
             DiscordEmoji[] discordEmojis = new DiscordEmoji[Roles.Count];
 
+            // Run through every RoleBind in the list and add it to the Array
             for (int i = 0; i < discordEmojis.Length; i++)
             {
                 if (Roles[i].EmojiID == 0) discordEmojis[i] = DiscordEmoji.FromUnicode(Roles[i].EmojiUnicode);
@@ -43,38 +44,9 @@ namespace DevExchangeBot.Storage.Models
             return discordEmojis;
         }
 
-        public DiscordEmoji GetEmoji(string _emojiName)
-        {
-            foreach (RoleBind role in Roles)
-            {
-                if (role.EmojiUnicode == _emojiName)
-                {
-                    return DiscordEmoji.FromUnicode(_emojiName);
-                }
-            }
-
-            // No Emoji has been found
-            Console.WriteLine($"No Role has been found for {_emojiName}");
-            return null;
-        }
-
-        public DiscordEmoji GetEmoji(ulong _emojiID)
-        {
-            foreach (RoleBind role in Roles)
-            {
-                if (role.EmojiID == _emojiID)
-                {
-                    return DiscordEmoji.FromGuildEmote(Program.Client, _emojiID);
-                }
-            }
-
-            // No Emoji has been found
-            Console.WriteLine($"No Role has been found for {_emojiID}");
-            return null;
-        }
-
         public ulong GetRoleID(DiscordEmoji _emoji)
         {
+            // Run through every RoleBind and if it matches the emoji return its RoleID
             foreach (RoleBind role in Roles)
             {
                 if (_emoji.Id == 0)
@@ -98,14 +70,10 @@ namespace DevExchangeBot.Storage.Models
             return 0;
         }
 
-        public void AddRole(ulong _roleID, ulong _emojiID)
+        public void AddRole(DiscordRole _role, DiscordEmoji _emoji)
         {
-            Roles?.Add(new RoleBind() { RoleID = _roleID, EmojiID = _emojiID });
-        }
-
-        public void AddRole(ulong _roleID, string _emojiName)
-        {
-            Roles?.Add(new RoleBind() { RoleID = _roleID, EmojiUnicode = _emojiName });
+            if (_emoji.Id == 0) Roles?.Add(new RoleBind() { RoleID = _role.Id, EmojiUnicode = _emoji.Name });
+            else Roles?.Add(new RoleBind() { RoleID = _role.Id, EmojiID = _emoji.Id });
         }
     }
 }

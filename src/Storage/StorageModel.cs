@@ -14,10 +14,5 @@ namespace DevExchangeBot.Storage
         }
 
         public RoleMenuModel RoleMenu { get; set; }
-
-        public Dictionary<string, ulong> RolesByName { get; set; }
-        public Dictionary<ulong, ulong> RolesByID { get; set; }
-        public ulong RoleMenuMsgID { get; set; }
-        public ulong RoleMenuChannelID { get; set; }
     }
 }

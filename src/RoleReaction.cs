@@ -19,50 +19,17 @@ namespace DevExchangeBot.RoleMenuSystem
         [Command("roleMenuAdd"), Aliases("rma")]
         [Description("Adds a role to the Role Menu (ulong roleID, ulong/string emojiID)")]
         [RequireUserPermissions(Permissions.Administrator)]
-        public async Task AddRole(CommandContext _ctx, ulong _roleID, ulong _emojiID)
+        public async Task AddRole(CommandContext _ctx, DiscordRole _role, DiscordEmoji _emoji)
         {
-            // Check if the role and emoji exist by trying to get them
-            DiscordRole role = _ctx.Guild.GetRole(_roleID);
-
-            if (!DiscordEmoji.TryFromGuildEmote(_ctx.Client, _emojiID, out DiscordEmoji emoji))
-            {
-                await _ctx.RespondAsync($"Unable to find Emoji {_emojiID}");
-            }
-
-            // Sweet. Add them to the list
-            StorageContext.Model.RoleMenu.AddRole(_roleID, _emojiID);
+            // Add the role and emoji to the list
+            StorageContext.Model.RoleMenu.AddRole(_role, _emoji);
 
             // Update the Role Menu
-            DiscordChannel channel = await _ctx.Client.GetChannelAsync(StorageContext.Model.RoleMenuChannelID);
-            await UpdateRoleMenu(await channel.GetMessageAsync(StorageContext.Model.RoleMenuMsgID));
+            DiscordChannel channel = await _ctx.Client.GetChannelAsync(StorageContext.Model.RoleMenu.RoleMenuChannelID);
+            await UpdateRoleMenu(await channel.GetMessageAsync(StorageContext.Model.RoleMenu.RoleMenuMsgID));
 
             // Feedback
-            await _ctx.RespondAsync($"Added role: {role.Name} {emoji}");
-        }
-
-        [Command("roleMenuAdd"), Aliases("rma")]
-        [Description("Adds a role to the Role Menu (ulong roleID, ulong/string emojiID)")]
-        [RequireUserPermissions(Permissions.Administrator)]
-        public async Task AddRole(CommandContext _ctx, ulong _roleID, string _emojiName)
-        {
-            // Check if the role and emoji exist by trying to get them
-            DiscordRole role = _ctx.Guild.GetRole(_roleID);
-
-            if (!DiscordEmoji.TryFromUnicode(_ctx.Client, _emojiName, out DiscordEmoji emoji))
-            {
-                await _ctx.RespondAsync($"Unable to find Emoji {_emojiName}");
-                return;
-            }
-
-            // Sweet. Add them to the list
-            StorageContext.Model.RoleMenu.AddRole(_roleID, _emojiName);
-
-            // Update the Role Menu
-            DiscordChannel channel = await _ctx.Client.GetChannelAsync(StorageContext.Model.RoleMenuChannelID);
-            await UpdateRoleMenu(await channel.GetMessageAsync(StorageContext.Model.RoleMenuMsgID));
-
-            // Feedback
-            await _ctx.RespondAsync($"Added role: {role.Name} {emoji}");
+            await _ctx.RespondAsync($"Added role: {_role.Name} {_emoji}");
         }
 
         [Command("rolMenuCreate"), Aliases("rmc")]
@@ -79,14 +46,14 @@ namespace DevExchangeBot.RoleMenuSystem
                 await msg.CreateReactionAsync(emoji);
             }
 
-            StorageContext.Model.RoleMenuMsgID = msg.Id;
-            StorageContext.Model.RoleMenuChannelID = msg.ChannelId;
+            StorageContext.Model.RoleMenu.RoleMenuMsgID = msg.Id;
+            StorageContext.Model.RoleMenu.RoleMenuChannelID = msg.ChannelId;
         }
 
         private static async Task OnReacted(DiscordClient _sender, MessageReactionAddEventArgs _event)
         {
-            if (StorageContext.Model.RoleMenuMsgID == 0 || StorageContext.Model.RoleMenuChannelID == 0) return; // Role Menu Not Created
-            if (_event.User.IsBot || _event.Message.Id != StorageContext.Model.RoleMenuMsgID) return; // Reaction Not On Role Menu
+            if (StorageContext.Model.RoleMenu.RoleMenuMsgID == 0 || StorageContext.Model.RoleMenu.RoleMenuChannelID == 0) return; // Role Menu Not Created
+            if (_event.User.IsBot || _event.Message.Id != StorageContext.Model.RoleMenu.RoleMenuMsgID) return; // Reaction Not On Role Menu
 
             ulong roleID = StorageContext.Model.RoleMenu.GetRoleID(_event.Emoji);
 
@@ -151,13 +118,12 @@ namespace DevExchangeBot.RoleMenuSystem
 
                 sb.AppendLine($"Welcome to our server! These roles will help you present yourself.");
                 sb.AppendLine($"Simply react to the message with the role you want and I will automagically give it to you.\n");
-                sb.AppendLine($"Note: If you wish you can click multiple reactions for more roles!\n");
+                sb.AppendLine($"Note: If you wish you can click multiple reactions for more roles!");
 
                 StorageContext.Model.RoleMenu.RoleMenuDescription = sb.ToString();
             }
 
-            //if (StorageContext.Model.RoleMenu.Roles == null) StorageContext.Model.RoleMenu.Roles = new List<Storage.Models.RoleMenuModel.RoleBind>();
-
+            // Listen to reactions on the Role Menu
             _client.MessageReactionAdded += OnReacted;
         }
     }
