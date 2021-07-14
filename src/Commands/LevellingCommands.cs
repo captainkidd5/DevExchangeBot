@@ -10,13 +10,15 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
+// ReSharper disable UnusedMember.Global
 
 namespace DevExchangeBot.Commands
 {
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class LevellingCommands : BaseCommandModule
     {
-        [Command("rank"), Aliases("r")]
-        public async Task Rank(CommandContext ctx, DiscordMember mbr = null)
+        [Command("rank"), Aliases("r"), Description("Show the rank for self or a given user.")]
+        public async Task Rank(CommandContext ctx, [Description("User to show the rank of.")] DiscordMember mbr = null)
         {
             var talked = StorageContext.Model.Users.TryGetValue(mbr?.Id ?? ctx.Member.Id, out var user);
 
@@ -41,7 +43,7 @@ namespace DevExchangeBot.Commands
                 .Build());
         }
 
-        [Command("leaderboard"), Aliases("lb")]
+        [Command("leaderboard"), Aliases("lb"), Description("Shows the leaderboard for this server.")]
         public async Task Leaderboard(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
@@ -86,8 +88,8 @@ namespace DevExchangeBot.Commands
             }
         }
 
-        [Command("setlevel"), RequireUserPermissions(Permissions.Administrator)]
-        public async Task SetLevel(CommandContext ctx, DiscordMember member, int level)
+        [Command("setlevel"), RequireUserPermissions(Permissions.Administrator), Description("Sets the level of a given user. Requires admin permissions.")]
+        public async Task SetLevel(CommandContext ctx, [Description("Members to set the level of.")] DiscordMember member, [Description("Level to set.")] int level)
         {
             if (member.IsBot)
             {
@@ -108,8 +110,8 @@ namespace DevExchangeBot.Commands
                 .WithColor(new DiscordColor(Program.Config.Color)));
         }
 
-        [Command("setmultiplier"), RequireUserPermissions(Permissions.Administrator)]
-        public async Task SetXpMultiplier(CommandContext ctx, float multiplier)
+        [Command("setmultiplier"), RequireUserPermissions(Permissions.Administrator), Description("Sets the global EXP multiplier. Requires admin permissions.")]
+        public async Task SetXpMultiplier(CommandContext ctx, [Description("Global multiplier to apply.")] float multiplier)
         {
             if (multiplier <= 0)
             {

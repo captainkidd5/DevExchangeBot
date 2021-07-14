@@ -20,6 +20,7 @@ namespace DevExchangeBot.Storage
             // Handle writing the data when the program exit and when any error happens
             var currentProcess = Process.GetCurrentProcess();
             currentProcess.Exited += SaveData;
+            AppDomain.CurrentDomain.UnhandledException += SaveData;
 
             // Set up a timer to save data every 30 seconds
             SaveTimer = new Timer
@@ -45,7 +46,7 @@ namespace DevExchangeBot.Storage
             };
         }
 
-        public static void SaveData(object sender, EventArgs eventArgs)
+        private static void SaveData(object sender, EventArgs eventArgs)
         {
             var json = JsonConvert.SerializeObject(Model, Formatting.Indented);
 

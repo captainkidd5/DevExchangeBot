@@ -34,5 +34,11 @@ namespace DevExchangeBot
                 await e.Channel.SendMessageAsync($"{Program.Config.Emoji.Confetti} {e.Author.Mention} advanced to level {user.Level}!");
             }
         }
+
+        public static Task OnGuildMemberRemoved(DiscordClient sender, GuildMemberRemoveEventArgs guildMemberRemoveEventArgs)
+        {
+            StorageContext.Model.Users.Remove(guildMemberRemoveEventArgs.Member.Id);
+            return Task.CompletedTask;
+        }
     }
 }
