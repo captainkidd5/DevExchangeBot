@@ -1,5 +1,6 @@
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Entities;
@@ -90,16 +91,27 @@ namespace DevExchangeBot.Commands
                 return; // Reaction Not On Role Menu
 
             // Make sure the Role exists
-            if (!StorageContext.Model.RoleMenu.GetRoleId(e.Emoji, out ulong _roleID))
+            if (!StorageContext.Model.RoleMenu.GetRoleId(e.Emoji, out ulong roleId))
             {
                 await e.Message.DeleteReactionsEmojiAsync(e.Emoji);
                 return;
             }
 
             var member = (DiscordMember)e.User;
+            var role = member.Roles.Where(r => r.Id == roleId).FirstOrDefault();
 
-            // Grant the Role and delete the Reaction
-            await member.GrantRoleAsync(e.Guild.GetRole(_roleID)).ConfigureAwait(false);
+            // Decide whether the role is already granted. If so, revoke the role.
+            // This turns the emoji system into a toggle to enable/disable the role.
+            if (role != null)
+            {
+                await member.RevokeRoleAsync(role).ConfigureAwait(false);
+            }
+            else
+            {
+                role = e.Guild.GetRole(roleId);
+                await member.GrantRoleAsync(role).ConfigureAwait(false);
+            }
+
             await e.Message.DeleteReactionAsync(e.Emoji, e.User).ConfigureAwait(false);
         }
 
