@@ -18,15 +18,16 @@ namespace DevExchangeBot.Commands
         [RequireUserPermissions(Permissions.Administrator)]
         public async Task AddRole(CommandContext ctx, DiscordRole role, DiscordEmoji emoji)
         {
-            // Add the role and emoji to the list
-            bool success = StorageContext.Model.RoleMenu.AddRole(role, emoji);
             await ctx.TriggerTypingAsync();
+
+            if (!StorageContext.Model.RoleMenu.HasRole(role))
+                StorageContext.Model.RoleMenu.AddRole(role, emoji);
 
             var embed = new DiscordEmbedBuilder()
                 .WithColor(new DiscordColor(Program.Config.Color))
                 .WithFooter("This message will automatically disappear in 5 seconds!");
 
-            if (success)
+            if (!StorageContext.Model.RoleMenu.HasRole(role))
             {
                 var channel = await ctx.Client.GetChannelAsync(StorageContext.Model.RoleMenu.ChannelId);
                 await UpdateRoleMenu(await channel.GetMessageAsync(StorageContext.Model.RoleMenu.MessageId));
@@ -35,9 +36,8 @@ namespace DevExchangeBot.Commands
             }
             else
             {
-                embed
-                    .WithDescription($"{Program.Config.Emoji.Failure} Failed to add role: **{role.Name}** {emoji}!")
-                    .WithColor(new DiscordColor(255, 0, 0));
+                embed.WithDescription($"{Program.Config.Emoji.Failure} Failed to update role: **{role.Name}** {emoji}!");
+                embed.WithColor(new DiscordColor(255, 0, 0));
             }
 
             var message = await ctx.RespondAsync(embed.Build());
