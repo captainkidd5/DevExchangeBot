@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using DevExchangeBot.Storage.Models;
 
 namespace DevExchangeBot.Storage
@@ -8,11 +8,19 @@ namespace DevExchangeBot.Storage
         public Dictionary<ulong, UserModel> Users { get; set; }
         public float ExpMultiplier { get; set; }
 
+        public RoleMenuModel RoleMenu { get; set; }
+
+        public StorageModel()
+        {
+            Users = new Dictionary<ulong, UserModel>();
+            ExpMultiplier = 1;
+
+            RoleMenu = new RoleMenuModel();
+        }
+
         public void AddUser(UserModel user)
         {
             Users.Add(user.Id, user);
         }
-
-        public RoleMenuModel RoleMenu { get; set; }
     }
 }

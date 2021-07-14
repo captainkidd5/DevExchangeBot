@@ -11,9 +11,6 @@ namespace DevExchangeBot.Storage.Models
         public ulong MessageId { get; set; }
         public ulong ChannelId { get; set; }
 
-        public string Title { get; set; }
-        public string Description { get; set; }
-
         // TODO: Open an issue on the repository on this matter
 
         // DiscordEmoji.FromName() doesn't work with Unicode
@@ -31,9 +28,14 @@ namespace DevExchangeBot.Storage.Models
             public string EmojiUnicode;
         }
 
+        public RoleMenuModel()
+        {
+            Roles = new List<RoleBind>();
+        }
+
         public DiscordEmoji[] GetAllEmojis()
         {
-            DiscordEmoji[] emojis = new DiscordEmoji[Roles.Count];
+            var emojis = new DiscordEmoji[Roles.Count];
 
             // Run through every RoleBind in the list and add it to the Array
             for (int i = 0; i < emojis.Length; i++)
