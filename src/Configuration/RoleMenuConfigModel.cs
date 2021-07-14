@@ -3,7 +3,7 @@ namespace DevExchangeBot.Configuration
 {
     public class RoleMenuConfigModel
     {
-        public string RoleMenuTitle { get; set; }
-        public string RoleMenuDescription { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
     }
 }

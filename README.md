@@ -50,6 +50,10 @@ should follow up with. These guidelines will mostly cover code style.
 - It is recommended to work on a separate branch on your own fork of the project, e.g. `patch-1`, `patch-2`, etc.
 - Use tabs instead of spaces;
 - The keyword `var` is preferred over strong type declarations where possible;
+- Try to comply to already established systems instead of writing your own next to it;
+- Avoid underscores in local variables unless it's a class field;
+- Avoid abbreviated variable names (e.g. use `builder` instead of `sb` and `message` instead of `msg`);
+- Prefer ID's to be formatted as `Id` instead of `ID` (e.g. use `messageId` instead of `messageID`);
 - Project files and binary output files should go in the `.gitignore` file;
 - Do not write excessively long lines of code, about 90 characters per line should be enough;
 - When placing a pull request or issue, always try to provide as much detail as possible;

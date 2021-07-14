@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -55,8 +55,9 @@ namespace DevExchangeBot
             });
 
             commands.CommandErrored += OnCommandErrored;
+
             commands.RegisterCommands<LevellingCommands>();
-            commands.RegisterCommands<RoleMenuSystem.RoleReaction>();
+            commands.RegisterCommands<RoleMenuCommands>();
 
             Client.UseInteractivity(new InteractivityConfiguration()
             {
@@ -68,8 +69,7 @@ namespace DevExchangeBot
             StorageContext.InitializeStorage();
 
             await Client.ConnectAsync();
-
-            await RoleMenuSystem.RoleReaction.Initialize(Client);
+            await RoleMenuCommands.Initialize(Client);
 
             await Task.Delay(-1);
         }
