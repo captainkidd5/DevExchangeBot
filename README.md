@@ -19,7 +19,8 @@ DSharpPlus NuGet sources and restore the project's dependencies:
 dotnet nuget add source https://nuget.emzi0767.com/api/v3/index.json
 dotnet restore
 ```
-Don't forget to enable all intents and add the bot to a server to see it in action!
+Don't forget to enable all intents on the Discord configuration page and add
+the bot to a server to see it in action!
 
 ## Roadmap
 Of course, everyone is free to add features to their own liking by taking a fork,
@@ -33,7 +34,7 @@ bot. These features include:
 - A self-service role assignment system where members pick their own roles by reacting with emojis;
 - A "virtual pet" that the Dev Exchange community takes care of;
 - A levelling system where you gain experience based on how much you talk;
-- A heart counter for the :pxheart: emoji to show some interesting statistics.
+- A heart counter for the :pxheart: emoji to show some interesting statistics to appear in a designated channel;
 
 **NOTE:** If you want to work on a feature, please open an issue to let others
 know that the feature is being worked on already!
