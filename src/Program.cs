@@ -67,9 +67,10 @@ namespace DevExchangeBot
             StorageContext.InitializeStorage();
             AppDomain.CurrentDomain.UnhandledException += StorageContext.SaveData;
 
-            RoleMenuSystem.RoleReaction.Initialize(Client);
-
             await Client.ConnectAsync();
+
+            await RoleMenuSystem.RoleReaction.Initialize(Client);
+
             await Task.Delay(-1);
         }
 

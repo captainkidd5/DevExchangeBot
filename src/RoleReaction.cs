@@ -73,6 +73,7 @@ namespace DevExchangeBot.RoleMenuSystem
             if (StorageContext.Model.RoleMenu.RoleMenuMsgID == 0 || StorageContext.Model.RoleMenu.RoleMenuChannelID == 0) return; // Role Menu Not Created
             if (_event.User.IsBot || _event.Message.Id != StorageContext.Model.RoleMenu.RoleMenuMsgID) return; // Reaction Not On Role Menu
 
+            // Make sure the Role exists
             if (!StorageContext.Model.RoleMenu.GetRoleID(_event.Emoji, out ulong _roleID))
             {
                 await _event.Message.DeleteReactionsEmojiAsync(_event.Emoji);
@@ -86,7 +87,7 @@ namespace DevExchangeBot.RoleMenuSystem
             await _event.Message.DeleteReactionAsync(_event.Emoji, _event.User).ConfigureAwait(false);
         }
 
-        private async Task UpdateRoleMenu(DiscordMessage _msg)
+        private static async Task UpdateRoleMenu(DiscordMessage _msg)
         {
             // Update the message
             DiscordEmbed embed = CreateMenuEmbed(_msg.Channel.Guild);
@@ -112,6 +113,7 @@ namespace DevExchangeBot.RoleMenuSystem
             // Build the Roles and Emojis
             foreach (DiscordEmoji emoji in StorageContext.Model.RoleMenu.GetAllEmojis())
             {
+                // Make sure the Role exists then add it onto the description
                 if (!StorageContext.Model.RoleMenu.GetRoleID(emoji, out ulong _roleID)) continue;
                 DiscordRole role = _guild.GetRole(_roleID);
                 sb.AppendLine($"{emoji} - {role.Name}");
@@ -128,13 +130,47 @@ namespace DevExchangeBot.RoleMenuSystem
             return embedBuilder.Build();
         }
 
-        public static void Initialize(DiscordClient _client)
+        public static async Task Initialize(DiscordClient _client)
         {
             // Initialize defaults if the configuration and data don't exist
             if (StorageContext.Model.RoleMenu == null)
             {
                 StorageContext.Model.RoleMenu = new Storage.Models.RoleMenuModel();
                 StorageContext.Model.RoleMenu.Roles = new List<Storage.Models.RoleMenuModel.RoleBind>();
+            }
+            else
+            {
+                // If the config exists then check if anyone reacted while the bot was offline
+                if (StorageContext.Model.RoleMenu.RoleMenuChannelID != 0)
+                {
+                    // Get the Role Menu Message
+                    DiscordChannel channel = await _client.GetChannelAsync(StorageContext.Model.RoleMenu.RoleMenuChannelID);
+                    DiscordMessage msg = await channel.GetMessageAsync(StorageContext.Model.RoleMenu.RoleMenuMsgID);
+
+                    // Get all reactions
+                    foreach (DiscordReaction reaction in msg.Reactions)
+                    {
+                        if (reaction.Count == 1) continue;
+                        if (StorageContext.Model.RoleMenu.GetRoleID(reaction.Emoji, out ulong _roleID))
+                        {
+                            IReadOnlyList<DiscordUser> users = await msg.GetReactionsAsync(reaction.Emoji);
+
+                            // Get users who reacted with the emoji
+                            foreach (DiscordUser user in users)
+                            {
+                                if (user.IsBot) continue;
+
+                                // Grant role to user
+                                DiscordMember member = await channel.Guild.GetMemberAsync(user.Id);
+                                await member.GrantRoleAsync(member.Guild.GetRole(_roleID));
+                            }
+                        }
+                    }
+
+                    // In case someone reacted with an emoji outside of our list
+                    // refresh the message to remove it
+                    await UpdateRoleMenu(msg);
+                }
             }
 
             // Listen to reactions on the Role Menu
