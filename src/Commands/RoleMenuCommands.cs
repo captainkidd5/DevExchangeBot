@@ -11,6 +11,7 @@ using DevExchangeBot.Storage;
 namespace DevExchangeBot.Commands
 {
     [Group("rolemenu")]
+    [RequireUserPermissions(Permissions.Administrator)]
     public class RoleMenuCommands : BaseCommandModule
     {
         [Command("addrole"), Aliases("a")]
