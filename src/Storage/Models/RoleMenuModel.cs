@@ -14,6 +14,8 @@ namespace DevExchangeBot.Storage.Models
         public string Title { get; set; }
         public string Description { get; set; }
 
+        // TODO: Open an issue on the repository on this matter
+
         // DiscordEmoji.FromName() doesn't work with Unicode
         // and DiscordEmoji.FromUnicode() doesn't work with Custom Guild Emojis
         // So we have to do this stupid thing where Unicode emojis have no ID and Guild Emojis have no Unicode
@@ -67,6 +69,7 @@ namespace DevExchangeBot.Storage.Models
             }
 
             // No role has been found
+            // TODO: Refactor the line below to use the built-in logging facilities
             Console.WriteLine($"No Role has been found for {emoji.Name}");
 
             roleId = 0;
