@@ -97,6 +97,7 @@ namespace DevExchangeBot.RoleMenuSystem
             // Set up reactions again
             await _msg.DeleteAllReactionsAsync();
 
+            // Add Role Reactions
             foreach (DiscordEmoji emoji in StorageContext.Model.RoleMenu.GetAllEmojis())
             {
                 await _msg.CreateReactionAsync(emoji);
@@ -146,6 +147,16 @@ namespace DevExchangeBot.RoleMenuSystem
                     // Get the Role Menu Message
                     DiscordChannel channel = await _client.GetChannelAsync(StorageContext.Model.RoleMenu.RoleMenuChannelID);
                     DiscordMessage msg = await channel.GetMessageAsync(StorageContext.Model.RoleMenu.RoleMenuMsgID);
+
+                    if (msg.Channel == null)
+                    {
+                        // I don't know why. I shouldn't have to wonder why.
+                        // But for some reason randomly the GetMessageAsync
+                        // returns a message that doesn't have a channel
+                        // So we have to skip checking for reactions
+                        _client.MessageReactionAdded += OnReacted;
+                        return;
+                    }
 
                     // Get all reactions
                     foreach (DiscordReaction reaction in msg.Reactions)
