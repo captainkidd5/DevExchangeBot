@@ -7,14 +7,14 @@ using DSharpPlus.Entities;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DevExchangeBot.Storage;
-using DevExchangeBot.Storage.Models;
 
 namespace DevExchangeBot.Commands
 {
+    [Group("rolemenu")]
     public class RoleMenuCommands : BaseCommandModule
     {
-        [Command("roleMenuAdd"), Aliases("rma")]
-        [Description("Adds a role to the Role Menu (@Role, :emoji:)")]
+        [Command("add"), Aliases("a")]
+        [Description("Adds a role to the menu")]
         [RequireUserPermissions(Permissions.Administrator)]
         public async Task AddRole(CommandContext ctx, DiscordRole role, DiscordEmoji emoji)
         {
@@ -29,8 +29,8 @@ namespace DevExchangeBot.Commands
             await ctx.RespondAsync($"Added role: {role.Name} {emoji}");
         }
 
-        [Command("roleMenuCreate"), Aliases("rmc")]
-        [Description("Creates a Role Menu in this channel")]
+        [Command("create"), Aliases("c")]
+        [Description("Creates a role menu in the current channel")]
         [RequireUserPermissions(Permissions.Administrator)]
         public async Task CreateRoleMenu(CommandContext ctx)
         {
@@ -46,8 +46,8 @@ namespace DevExchangeBot.Commands
 
         // Just in case for some reason you want to switch the Role Menu
         // without creating a new one
-        [Command("roleMenuMessage"), Aliases("rmm")]
-        [Description("Changes on which message the Role Menu should display (#channel, ulong MsgID)")]
+        [Command("message"), Aliases("m")]
+        [Description("Changes on which message the role menu should display")]
         [RequireUserPermissions(Permissions.Administrator)]
         public async Task ChangeMessage(CommandContext ctx, DiscordChannel channel, ulong messageId)
         {
@@ -117,69 +117,58 @@ namespace DevExchangeBot.Commands
 
             // Wrap it up in a nice Embed
             var embed = new DiscordEmbedBuilder()
-            {
-                Color = new DiscordColor("#5c89fb"),
-                Title = Program.Config.RoleMenu.Title,
-                Description = builder.ToString()
-            };
+                .WithColor(new DiscordColor(Program.Config.Color))
+                .WithTitle(Program.Config.RoleMenu.Title)
+                .WithDescription(builder.ToString());
 
             return embed.Build();
         }
 
         public static async Task Initialize(DiscordClient client)
         {
-            // Initialize defaults if the configuration and data don't exist
-            if (StorageContext.Model.RoleMenu == null)
+            // If the config exists then check if anyone reacted while the bot was offline
+            if (StorageContext.Model.RoleMenu.ChannelId != 0)
             {
-                StorageContext.Model.RoleMenu = new RoleMenuModel();
-                StorageContext.Model.RoleMenu.Roles = new List<RoleMenuModel.RoleBind>();
-            }
-            else
-            {
-                // If the config exists then check if anyone reacted while the bot was offline
-                if (StorageContext.Model.RoleMenu.ChannelId != 0)
+                // Get the Role Menu Message
+                var channel = await client.GetChannelAsync(StorageContext.Model.RoleMenu.ChannelId);
+                var message = await channel.GetMessageAsync(StorageContext.Model.RoleMenu.MessageId);
+
+                if (message.Channel == null)
                 {
-                    // Get the Role Menu Message
-                    var channel = await client.GetChannelAsync(StorageContext.Model.RoleMenu.ChannelId);
-                    var message = await channel.GetMessageAsync(StorageContext.Model.RoleMenu.MessageId);
+                    // I don't know why. I shouldn't have to wonder why.
+                    // But for some reason randomly the GetMessageAsync
+                    // returns a message that doesn't have a channel
+                    // So we have to skip checking for reactions
+                    client.MessageReactionAdded += OnReacted;
+                    return;
+                }
 
-                    if (message.Channel == null)
+                // Get all reactions
+                foreach (DiscordReaction reaction in message.Reactions)
+                {
+                    if (reaction.Count == 1)
+                        continue;
+
+                    if (StorageContext.Model.RoleMenu.GetRoleId(reaction.Emoji, out ulong roleId))
                     {
-                        // I don't know why. I shouldn't have to wonder why.
-                        // But for some reason randomly the GetMessageAsync
-                        // returns a message that doesn't have a channel
-                        // So we have to skip checking for reactions
-                        client.MessageReactionAdded += OnReacted;
-                        return;
-                    }
+                        var users = await message.GetReactionsAsync(reaction.Emoji);
 
-                    // Get all reactions
-                    foreach (DiscordReaction reaction in message.Reactions)
-                    {
-                        if (reaction.Count == 1)
-                            continue;
-
-                        if (StorageContext.Model.RoleMenu.GetRoleId(reaction.Emoji, out ulong roleId))
+                        // Get users who reacted with the emoji
+                        foreach (DiscordUser user in users)
                         {
-                            var users = await message.GetReactionsAsync(reaction.Emoji);
+                            if (user.IsBot)
+                                continue;
 
-                            // Get users who reacted with the emoji
-                            foreach (DiscordUser user in users)
-                            {
-                                if (user.IsBot)
-                                    continue;
-
-                                // Grant role to user
-                                DiscordMember member = await channel.Guild.GetMemberAsync(user.Id);
-                                await member.GrantRoleAsync(member.Guild.GetRole(roleId));
-                            }
+                            // Grant role to user
+                            DiscordMember member = await channel.Guild.GetMemberAsync(user.Id);
+                            await member.GrantRoleAsync(member.Guild.GetRole(roleId));
                         }
                     }
-
-                    // In case someone reacted with an emoji outside of our list
-                    // refresh the message to remove it
-                    await UpdateRoleMenu(message);
                 }
+
+                // In case someone reacted with an emoji outside of our list
+                // refresh the message to remove it
+                await UpdateRoleMenu(message);
             }
 
             // Listen to reactions on the Role Menu
