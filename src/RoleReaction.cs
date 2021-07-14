@@ -73,12 +73,16 @@ namespace DevExchangeBot.RoleMenuSystem
             if (StorageContext.Model.RoleMenu.RoleMenuMsgID == 0 || StorageContext.Model.RoleMenu.RoleMenuChannelID == 0) return; // Role Menu Not Created
             if (_event.User.IsBot || _event.Message.Id != StorageContext.Model.RoleMenu.RoleMenuMsgID) return; // Reaction Not On Role Menu
 
-            ulong roleID = StorageContext.Model.RoleMenu.GetRoleID(_event.Emoji);
+            if (!StorageContext.Model.RoleMenu.GetRoleID(_event.Emoji, out ulong _roleID))
+            {
+                await _event.Message.DeleteReactionsEmojiAsync(_event.Emoji);
+                return;
+            }
 
             DiscordMember member = (DiscordMember)_event.User;
 
             // Grant the Role and delete the Reaction
-            await member.GrantRoleAsync(_event.Guild.GetRole(roleID)).ConfigureAwait(false);
+            await member.GrantRoleAsync(_event.Guild.GetRole(_roleID)).ConfigureAwait(false);
             await _event.Message.DeleteReactionAsync(_event.Emoji, _event.User).ConfigureAwait(false);
         }
 
@@ -108,7 +112,8 @@ namespace DevExchangeBot.RoleMenuSystem
             // Build the Roles and Emojis
             foreach (DiscordEmoji emoji in StorageContext.Model.RoleMenu.GetAllEmojis())
             {
-                DiscordRole role = _guild.GetRole(StorageContext.Model.RoleMenu.GetRoleID(emoji));
+                if (!StorageContext.Model.RoleMenu.GetRoleID(emoji, out ulong _roleID)) continue;
+                DiscordRole role = _guild.GetRole(_roleID);
                 sb.AppendLine($"{emoji} - {role.Name}");
             }
 

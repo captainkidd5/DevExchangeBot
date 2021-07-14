@@ -44,7 +44,7 @@ namespace DevExchangeBot.Storage.Models
             return discordEmojis;
         }
 
-        public ulong GetRoleID(DiscordEmoji _emoji)
+        public bool GetRoleID(DiscordEmoji _emoji, out ulong _roleID)
         {
             // Run through every RoleBind and if it matches the emoji return its RoleID
             foreach (RoleBind role in Roles)
@@ -53,21 +53,24 @@ namespace DevExchangeBot.Storage.Models
                 {
                     if (role.EmojiUnicode == _emoji.Name)
                     {
-                        return role.RoleID;
+                        _roleID = role.RoleID;
+                        return true;
                     }
                 }
                 else
                 {
                     if (role.EmojiID == _emoji.Id)
                     {
-                        return role.RoleID;
+                        _roleID = role.RoleID;
+                        return true;
                     }
                 }
             }
 
             // No role has been found
             Console.WriteLine($"No Role has been found for {_emoji.Name}");
-            return 0;
+            _roleID = 0;
+            return false;
         }
 
         public void AddRole(DiscordRole _role, DiscordEmoji _emoji)
