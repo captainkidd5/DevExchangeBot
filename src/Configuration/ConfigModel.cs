@@ -8,5 +8,6 @@ namespace DevExchangeBot.Configuration
         public string Color { get; set; }
 
         public EmojiConfigModel Emoji { get; set; }
+        public RoleMenuConfigModel RoleMenu { get; set; }
     }
 }

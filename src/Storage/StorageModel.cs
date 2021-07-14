@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using DevExchangeBot.Storage.Models;
 
 namespace DevExchangeBot.Storage
@@ -12,5 +12,7 @@ namespace DevExchangeBot.Storage
         {
             Users.Add(user.Id, user);
         }
+
+        public RoleMenuModel RoleMenu { get; set; }
     }
 }
