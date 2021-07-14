@@ -34,7 +34,7 @@ bot. These features include:
 - A self-service role assignment system where members pick their own roles by reacting with emojis;
 - A "virtual pet" that the Dev Exchange community takes care of;
 - A levelling system where you gain experience based on how much you talk;
-- A heart counter for the :pxheart: emoji to show some interesting statistics.
+- A heart counter for the :pxheart: emoji to show some interesting statistics to appear in a designated channel;
 
 **NOTE:** If you want to work on a feature, please open an issue to let others
 know that the feature is being worked on already!
