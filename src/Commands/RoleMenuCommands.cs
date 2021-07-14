@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus;
@@ -13,43 +12,63 @@ namespace DevExchangeBot.Commands
     [Group("rolemenu")]
     public class RoleMenuCommands : BaseCommandModule
     {
-        [Command("add"), Aliases("a")]
+        [Command("addrole"), Aliases("a")]
         [Description("Adds a role to the menu")]
         [RequireUserPermissions(Permissions.Administrator)]
         public async Task AddRole(CommandContext ctx, DiscordRole role, DiscordEmoji emoji)
         {
             // Add the role and emoji to the list
-            StorageContext.Model.RoleMenu.AddRole(role, emoji);
+            bool success = StorageContext.Model.RoleMenu.AddRole(role, emoji);
+            await ctx.TriggerTypingAsync();
 
-            // Update the Role Menu
-            var channel = await ctx.Client.GetChannelAsync(StorageContext.Model.RoleMenu.ChannelId);
-            await UpdateRoleMenu(await channel.GetMessageAsync(StorageContext.Model.RoleMenu.MessageId));
+            var embed = new DiscordEmbedBuilder()
+                .WithColor(new DiscordColor(Program.Config.Color))
+                .WithFooter("This message will automatically disappear in 5 seconds!");
 
-            // Feedback
-            await ctx.RespondAsync($"Added role: {role.Name} {emoji}");
+            if (success)
+            {
+                var channel = await ctx.Client.GetChannelAsync(StorageContext.Model.RoleMenu.ChannelId);
+                await UpdateRoleMenu(await channel.GetMessageAsync(StorageContext.Model.RoleMenu.MessageId));
+
+                embed.WithDescription($"{Program.Config.Emoji.Success} Added role: **{role.Name}** {emoji}");
+            }
+            else
+            {
+                embed
+                    .WithDescription($"{Program.Config.Emoji.Failure} Failed to add role: **{role.Name}** {emoji}!")
+                    .WithColor(new DiscordColor(255, 0, 0));
+            }
+
+            var message = await ctx.RespondAsync(embed.Build());
+            await Task.Delay(5000);
+
+            await ctx.Message.DeleteAsync();
+            await message.DeleteAsync();
         }
 
         [Command("create"), Aliases("c")]
         [Description("Creates a role menu in the current channel")]
         [RequireUserPermissions(Permissions.Administrator)]
-        public async Task CreateRoleMenu(CommandContext ctx)
+        public async Task Create(CommandContext ctx)
         {
             var embed = CreateMenuEmbed(ctx.Guild);
-            var message = await ctx.Client.SendMessageAsync(ctx.Channel, embed);
+            var message = await ctx.Channel.SendMessageAsync(embed);
 
             foreach (DiscordEmoji emoji in StorageContext.Model.RoleMenu.GetAllEmojis())
                 await message.CreateReactionAsync(emoji);
 
             StorageContext.Model.RoleMenu.MessageId = message.Id;
             StorageContext.Model.RoleMenu.ChannelId = message.ChannelId;
+
+            await ctx.Message.DeleteAsync();
         }
 
         // Just in case for some reason you want to switch the Role Menu
         // without creating a new one
-        [Command("message"), Aliases("m")]
+        [Command("setmessage"), Aliases("m")]
         [Description("Changes on which message the role menu should display")]
         [RequireUserPermissions(Permissions.Administrator)]
-        public async Task ChangeMessage(CommandContext ctx, DiscordChannel channel, ulong messageId)
+        public async Task SetMessage(CommandContext ctx, DiscordChannel channel, ulong messageId)
         {
             // Get the message
             var message = await channel.GetMessageAsync(messageId);

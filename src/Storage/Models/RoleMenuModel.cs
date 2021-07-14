@@ -78,10 +78,20 @@ namespace DevExchangeBot.Storage.Models
             return false;
         }
 
-        public void AddRole(DiscordRole role, DiscordEmoji emoji)
+        public bool AddRole(DiscordRole role, DiscordEmoji emoji)
         {
-            if (emoji.Id == 0) Roles?.Add(new RoleBind() { RoleId = role.Id, EmojiUnicode = emoji.Name });
-            else Roles?.Add(new RoleBind() { RoleId = role.Id, EmojiId = emoji.Id });
+            foreach (RoleBind bind in Roles)
+            {
+                if (bind.RoleId == role.Id)
+                    return false;
+            }
+
+            if (emoji.Id == 0)
+                Roles.Add(new RoleBind() { RoleId = role.Id, EmojiUnicode = emoji.Name });
+            else
+                Roles.Add(new RoleBind() { RoleId = role.Id, EmojiId = emoji.Id });
+
+            return true;
         }
     }
 }
