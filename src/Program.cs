@@ -45,6 +45,7 @@ namespace DevExchangeBot
             });
 
             Client.MessageCreated += ClientEvents.OnMessageCreated;
+            Client.GuildMemberRemoved += ClientEvents.OnGuildMemberRemoved;
 
             var commands = Client.UseCommandsNext(new CommandsNextConfiguration()
             {
