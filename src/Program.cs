@@ -45,6 +45,7 @@ namespace DevExchangeBot
             });
 
             Client.MessageCreated += ClientEvents.OnMessageCreated;
+            Client.GuildMemberRemoved += ClientEvents.OnGuildMemberRemoved;
 
             var commands = Client.UseCommandsNext(new CommandsNextConfiguration()
             {
@@ -66,7 +67,6 @@ namespace DevExchangeBot
             });
 
             StorageContext.InitializeStorage();
-            AppDomain.CurrentDomain.UnhandledException += StorageContext.SaveData;
 
             await Client.ConnectAsync();
             await Task.Delay(-1);
