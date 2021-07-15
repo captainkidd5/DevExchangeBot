@@ -42,7 +42,8 @@ namespace DevExchangeBot.Storage
             Model = JsonConvert.DeserializeObject<StorageModel>(File.ReadAllText(FilePath)) ?? new StorageModel
             {
                 Users = new Dictionary<ulong, UserModel>(),
-                ExpMultiplier = 1
+                ExpMultiplier = 1,
+                HeartboardMessages = new Dictionary<ulong, ulong>()
             };
         }
 
