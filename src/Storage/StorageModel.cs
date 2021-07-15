@@ -8,6 +8,8 @@ namespace DevExchangeBot.Storage
         public Dictionary<ulong, UserModel> Users { get; set; }
         public float ExpMultiplier { get; set; }
 
+        public bool AutoQuoterEnabled { get; set; }
+
         public void AddUser(UserModel user)
         {
             Users.Add(user.Id, user);
