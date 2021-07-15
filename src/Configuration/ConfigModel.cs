@@ -12,5 +12,7 @@ namespace DevExchangeBot.Configuration
 
         public IList<string> RawHeartBoardEmojis { get; set; }
         public int HeartboardRequirement { get; set; }
+
+        public RoleMenuConfigModel RoleMenu { get; set; }
     }
 }

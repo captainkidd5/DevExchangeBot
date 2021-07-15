@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Timers;
-using DevExchangeBot.Storage.Models;
 using Newtonsoft.Json;
 
 namespace DevExchangeBot.Storage
@@ -38,13 +36,7 @@ namespace DevExchangeBot.Storage
                 fs.Dispose();
             }
 
-            // Retrieve the data and load the static object with it
-            Model = JsonConvert.DeserializeObject<StorageModel>(File.ReadAllText(FilePath)) ?? new StorageModel
-            {
-                Users = new Dictionary<ulong, UserModel>(),
-                ExpMultiplier = 1,
-                HeartboardMessages = new Dictionary<ulong, ulong>()
-            };
+            Model = JsonConvert.DeserializeObject<StorageModel>(File.ReadAllText(FilePath)) ?? new StorageModel();
         }
 
         private static void SaveData(object sender, EventArgs eventArgs)
