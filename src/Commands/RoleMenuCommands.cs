@@ -31,7 +31,7 @@ namespace DevExchangeBot.Commands
             if (!StorageContext.Model.RoleMenu.HasRole(role))
             {
                 var channel = await ctx.Client.GetChannelAsync(StorageContext.Model.RoleMenu.ChannelId);
-                await UpdateRoleMenu(await channel.GetMessageAsync(StorageContext.Model.RoleMenu.MessageId));
+                await UpdateRoleMenu(ctx.Client, await channel.GetMessageAsync(StorageContext.Model.RoleMenu.MessageId));
 
                 embed.WithDescription($"{Program.Config.Emoji.Success} Added role: **{role.Name}** {emoji}");
             }
@@ -53,10 +53,10 @@ namespace DevExchangeBot.Commands
         [RequireUserPermissions(Permissions.Administrator)]
         public async Task Create(CommandContext ctx)
         {
-            var embed = CreateMenuEmbed(ctx.Guild);
+            var embed = CreateMenuEmbed(ctx.Client, ctx.Guild);
             var message = await ctx.Channel.SendMessageAsync(embed);
 
-            foreach (DiscordEmoji emoji in StorageContext.Model.RoleMenu.GetAllEmojis())
+            foreach (DiscordEmoji emoji in StorageContext.Model.RoleMenu.GetAllEmojis(ctx.Client))
                 await message.CreateReactionAsync(emoji);
 
             StorageContext.Model.RoleMenu.MessageId = message.Id;
@@ -80,7 +80,7 @@ namespace DevExchangeBot.Commands
             StorageContext.Model.RoleMenu.ChannelId = message.ChannelId;
 
             // Update Role Menu on the new message
-            await UpdateRoleMenu(message);
+            await UpdateRoleMenu(ctx.Client, message);
         }
 
         private static async Task OnReacted(DiscordClient sender, MessageReactionAddEventArgs e)
@@ -116,28 +116,28 @@ namespace DevExchangeBot.Commands
             await e.Message.DeleteReactionAsync(e.Emoji, e.User).ConfigureAwait(false);
         }
 
-        private static async Task UpdateRoleMenu(DiscordMessage message)
+        private static async Task UpdateRoleMenu(DiscordClient client, DiscordMessage message)
         {
             // Update the message
-            var embed = CreateMenuEmbed(message.Channel.Guild);
+            var embed = CreateMenuEmbed(client, message.Channel.Guild);
             await message.ModifyAsync(embed).ConfigureAwait(false);
 
             // Set up reactions again
             await message.DeleteAllReactionsAsync();
 
             // Add Role Reactions
-            foreach (DiscordEmoji emoji in StorageContext.Model.RoleMenu.GetAllEmojis())
+            foreach (DiscordEmoji emoji in StorageContext.Model.RoleMenu.GetAllEmojis(client))
                 await message.CreateReactionAsync(emoji);
         }
 
-        private static DiscordEmbed CreateMenuEmbed(DiscordGuild guild)
+        private static DiscordEmbed CreateMenuEmbed(DiscordClient client, DiscordGuild guild)
         {
             // Build the Description
             var builder = new StringBuilder();
             builder.AppendLine(Program.Config.RoleMenu.Description);
 
             // Build the Roles and Emojis
-            foreach (DiscordEmoji emoji in StorageContext.Model.RoleMenu.GetAllEmojis())
+            foreach (DiscordEmoji emoji in StorageContext.Model.RoleMenu.GetAllEmojis(client))
             {
                 // Make sure the Role exists then add it onto the description
                 if (!StorageContext.Model.RoleMenu.GetRoleId(emoji, out ulong roleId))
@@ -200,7 +200,7 @@ namespace DevExchangeBot.Commands
 
                 // In case someone reacted with an emoji outside of our list
                 // refresh the message to remove it
-                await UpdateRoleMenu(message);
+                await UpdateRoleMenu(client, message);
             }
 
             // Listen to reactions on the Role Menu
