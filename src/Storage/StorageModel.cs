@@ -9,6 +9,15 @@ namespace DevExchangeBot.Storage
         public float ExpMultiplier { get; set; }
 
         public bool AutoQuoterEnabled { get; set; }
+        public RoleMenuModel RoleMenu { get; set; }
+
+        public StorageModel()
+        {
+            Users = new Dictionary<ulong, UserModel>();
+            ExpMultiplier = 1;
+
+            RoleMenu = new RoleMenuModel();
+        }
 
         public void AddUser(UserModel user)
         {

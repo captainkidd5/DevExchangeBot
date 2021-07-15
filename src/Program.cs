@@ -56,8 +56,10 @@ namespace DevExchangeBot
             });
 
             commands.CommandErrored += OnCommandErrored;
+
             commands.RegisterCommands<LevellingCommands>();
             commands.RegisterCommands<QuoterCommands>();
+            commands.RegisterCommands<RoleMenuCommands>();
 
             Client.UseInteractivity(new InteractivityConfiguration()
             {
@@ -69,6 +71,8 @@ namespace DevExchangeBot
             StorageContext.InitializeStorage();
 
             await Client.ConnectAsync();
+            await RoleMenuCommands.Initialize(Client);
+
             await Task.Delay(-1);
         }
 

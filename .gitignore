@@ -3,6 +3,7 @@
 # add the config here!
 .vscode/
 .idea/
+.vs/
 *.DotSettings.user
 *.csproj.DotSettings
 bin/
