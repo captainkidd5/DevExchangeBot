@@ -59,6 +59,7 @@ namespace DevExchangeBot
 
             commands.CommandErrored += OnCommandErrored;
             commands.RegisterCommands<LevellingCommands>();
+            commands.RegisterCommands<HeartboardCommands>();
 
             Client.UseInteractivity(new InteractivityConfiguration()
             {
