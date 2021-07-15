@@ -44,7 +44,8 @@ namespace DevExchangeBot
                 Intents = DiscordIntents.All // TODO: Enable intents in the bot's application page
             });
 
-            Client.MessageCreated += ClientEvents.OnMessageCreated;
+            Client.MessageCreated += ClientEvents.OnMessageCreatedLevelling;
+            Client.MessageCreated += ClientEvents.OnMessageCreatedAutoQuoter;
             Client.GuildMemberRemoved += ClientEvents.OnGuildMemberRemoved;
 
             var commands = Client.UseCommandsNext(new CommandsNextConfiguration()
@@ -57,6 +58,7 @@ namespace DevExchangeBot
             commands.CommandErrored += OnCommandErrored;
 
             commands.RegisterCommands<LevellingCommands>();
+            commands.RegisterCommands<QuoterCommands>();
             commands.RegisterCommands<RoleMenuCommands>();
 
             Client.UseInteractivity(new InteractivityConfiguration()

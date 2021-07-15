@@ -8,6 +8,7 @@ namespace DevExchangeBot.Storage
         public Dictionary<ulong, UserModel> Users { get; set; }
         public float ExpMultiplier { get; set; }
 
+        public bool AutoQuoterEnabled { get; set; }
         public RoleMenuModel RoleMenu { get; set; }
 
         public StorageModel()
