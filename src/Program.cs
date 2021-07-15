@@ -20,7 +20,10 @@ namespace DevExchangeBot
 {
     public static class Program
     {
-        private static DiscordClient Client { get; set; }
+        // TODO: The client class shouldn't be public, but there are
+        // compatibility issues with the role menu system if we make
+        // this private. This needs fixing.
+        public static DiscordClient Client { get; private set; }
         public static ConfigModel Config { get; private set; }
 
         private static void Main()
