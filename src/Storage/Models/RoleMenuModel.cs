@@ -1,3 +1,4 @@
+using DSharpPlus;
 using DSharpPlus.Entities;
 using System;
 using System.Collections.Generic;
@@ -33,7 +34,7 @@ namespace DevExchangeBot.Storage.Models
             Roles = new List<RoleBind>();
         }
 
-        public DiscordEmoji[] GetAllEmojis()
+        public DiscordEmoji[] GetAllEmojis(DiscordClient client)
         {
             var emojis = new DiscordEmoji[Roles.Count];
 
@@ -41,7 +42,7 @@ namespace DevExchangeBot.Storage.Models
             for (int i = 0; i < emojis.Length; i++)
             {
                 if (Roles[i].EmojiId == 0) emojis[i] = DiscordEmoji.FromUnicode(Roles[i].EmojiUnicode);
-                else emojis[i] = DiscordEmoji.FromGuildEmote(Program.Client, Roles[i].EmojiId);
+                else emojis[i] = DiscordEmoji.FromGuildEmote(client, Roles[i].EmojiId);
             }
 
             return emojis;

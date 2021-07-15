@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,7 +23,7 @@ namespace DevExchangeBot
         // TODO: The client class shouldn't be public, but there are
         // compatibility issues with the role menu system if we make
         // this private. This needs fixing.
-        public static DiscordClient Client { get; private set; }
+        private static DiscordClient Client { get; set; }
         public static ConfigModel Config { get; private set; }
 
         private static void Main()
