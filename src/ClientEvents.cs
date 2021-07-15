@@ -14,7 +14,7 @@ namespace DevExchangeBot
 {
     public static class ClientEvents
     {
-        public static async Task OnMessageCreated(DiscordClient sender, MessageCreateEventArgs e)
+        public static async Task OnMessageCreatedLevelling(DiscordClient sender, MessageCreateEventArgs e)
         {
             if (e.Author.IsBot || e.Message.Content.StartsWith(Program.Config.Prefix))
                 return;
@@ -37,6 +37,39 @@ namespace DevExchangeBot
 
                 await e.Channel.SendMessageAsync($"{Program.Config.Emoji.Confetti} {e.Author.Mention} advanced to level {user.Level}!");
             }
+        }
+
+        public static async Task OnMessageCreatedAutoQuoter(DiscordClient sender, MessageCreateEventArgs e)
+        {
+            if (!StorageContext.Model.AutoQuoterEnabled) return;
+
+            var match = Regex.Match(e.Message.Content, "^https://discord.com/channels/([0-9]+)/([0-9]+)/([0-9]+)$");
+
+            if (!match.Success) return;
+
+            if (!ulong.TryParse(match.Groups[1].Value, out var guildId) ||
+                !ulong.TryParse(match.Groups[2].Value, out var channelId) ||
+                !ulong.TryParse(match.Groups[3].Value, out var messageId)) return;
+
+            DiscordMessage message;
+            try
+            {
+                message = await (await sender.GetGuildAsync(guildId)).GetChannel(channelId).GetMessageAsync(messageId);
+            }
+            catch (Exception exception)
+            {
+                sender.Logger.LogWarning(exception, "Could not get message from the following link '{Link}'", e.Message.Content);
+                return;
+            }
+
+            await e.Message.DeleteAsync();
+            await e.Channel.SendMessageAsync(new DiscordEmbedBuilder
+                {
+                    Color = new DiscordColor(Program.Config.Color),
+                    Description = message.Content
+                }
+                .WithAuthor($"{message.Author.Username}#{message.Author.Discriminator}", iconUrl:message.Author.AvatarUrl)
+                .AddField("Quoted by", $"{e.Message.Author.Mention} from [#{message.Channel.Name}]({message.JumpLink})"));
         }
 
         public static Task OnGuildMemberRemoved(DiscordClient sender, GuildMemberRemoveEventArgs guildMemberRemoveEventArgs)
