@@ -20,7 +20,7 @@ namespace DevExchangeBot
 {
     public static class Program
     {
-        public static DiscordClient Client { get; private set; }
+        private static DiscordClient Client { get; set; }
         public static ConfigModel Config { get; private set; }
 
         private static void Main()
@@ -51,7 +51,8 @@ namespace DevExchangeBot
             {
                 EnableDms = false,
                 EnableMentionPrefix = false,
-                StringPrefixes = new [] { Program.Config.Prefix }
+                StringPrefixes = new [] { Config.Prefix },
+                IgnoreExtraArguments = true
             });
 
             commands.CommandErrored += OnCommandErrored;
