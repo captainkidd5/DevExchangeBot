@@ -11,8 +11,8 @@ namespace DevExchangeBot.Commands
     // ReSharper disable once ClassNeverInstantiated.Global
     public class HeartboardCommands : BaseCommandModule
     {
-        [Command("hbsetchannel"), RequireUserPermissions(Permissions.Administrator)]
-        public async Task HbSetChannel(CommandContext ctx, DiscordChannel channel)
+        [Command("hbsetchannel"), RequireUserPermissions(Permissions.Administrator), Description("Sets the channel for the starboard")]
+        public async Task HbSetChannel(CommandContext ctx, [Description("Channel to post the messages in")] DiscordChannel channel)
         {
             StorageContext.Model.HeartBoardChannel = channel.Id;
 
@@ -23,7 +23,7 @@ namespace DevExchangeBot.Commands
             });
         }
 
-        [Command("hbtoggle"), RequireUserPermissions(Permissions.Administrator)]
+        [Command("hbtoggle"), RequireUserPermissions(Permissions.Administrator), Description("Toggles the starboard module")]
         public async Task HbToggle(CommandContext ctx)
         {
             StorageContext.Model.HeartBoardEnabled = !StorageContext.Model.HeartBoardEnabled;
