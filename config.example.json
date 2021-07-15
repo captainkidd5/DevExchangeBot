@@ -11,6 +11,13 @@
     "Failure": ":x:",
     "CriticalError": ":bangbang:",
     "AccessDenied": ":raised_hand:",
+    "Loading": ":pause_button:",
+    "Warning": ":warning:"
+  },
+  "RawHeartBoardEmojis": [
+    ":star:"
+  ],
+  "HeartboardRequirement": 5
     "Loading": ":pause_button:"
   },
   "RoleMenu": {

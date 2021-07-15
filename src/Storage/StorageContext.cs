@@ -36,7 +36,6 @@ namespace DevExchangeBot.Storage
                 fs.Dispose();
             }
 
-            // Retrieve the data and load the static object with it
             Model = JsonConvert.DeserializeObject<StorageModel>(File.ReadAllText(FilePath)) ?? new StorageModel();
         }
 

@@ -20,7 +20,7 @@ namespace DevExchangeBot
 {
     public static class Program
     {
-        public static DiscordClient Client { get; private set; }
+        private static DiscordClient Client { get; set; }
         public static ConfigModel Config { get; private set; }
 
         private static void Main()
@@ -46,17 +46,21 @@ namespace DevExchangeBot
 
             Client.MessageCreated += ClientEvents.OnMessageCreated;
             Client.GuildMemberRemoved += ClientEvents.OnGuildMemberRemoved;
+            Client.MessageReactionAdded += ClientEvents.OnMessageReactionAdded;
+            Client.MessageReactionRemoved += ClientEvents.OnMessageReactionRemoved;
 
             var commands = Client.UseCommandsNext(new CommandsNextConfiguration()
             {
                 EnableDms = false,
                 EnableMentionPrefix = false,
-                StringPrefixes = new [] { Program.Config.Prefix }
+                StringPrefixes = new [] { Config.Prefix },
+                IgnoreExtraArguments = true
             });
 
             commands.CommandErrored += OnCommandErrored;
 
             commands.RegisterCommands<LevellingCommands>();
+            commands.RegisterCommands<HeartboardCommands>();
             commands.RegisterCommands<RoleMenuCommands>();
 
             Client.UseInteractivity(new InteractivityConfiguration()
