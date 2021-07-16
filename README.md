@@ -49,7 +49,7 @@ should follow up with. These guidelines will mostly cover code style.
 
 - [JustAeris](https://github.com/JustAeris) - Development of the storage system, level system, heart board and quoting system;
 - [CoolGabrijel](https://github.com/CoolGabrijel) - Development of the role menu feature;
-- Rafe (link coming soon!) - Design and rendering of the Alt + F4 background of the bot's avatar.
+- rafe#4854 - Design and rendering of the Alt + F4 background of the bot's avatar.
 
 ## License
 Although the bot was specifically made for and by the Dev Exchange community, the
