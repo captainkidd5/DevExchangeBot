@@ -24,7 +24,7 @@ namespace DevExchangeBot.Storage.Models
             // Goes through every Emoji name in the dictionary and converts it into DiscordEmoji
             foreach (string emojiName in Roles.Keys)
             {
-                if (DiscordEmoji.TryFromName(client, $":{emojiName}:", true, out DiscordEmoji emoji))
+                if (DiscordEmoji.TryFromName(client, $"{emojiName}", true, out DiscordEmoji emoji))
                     emojis.Add(emoji);
             }
 
