@@ -76,7 +76,7 @@ namespace DevExchangeBot.Commands
                 .WithColor(new DiscordColor(Program.Config.Color))
                 .WithTimestamp(DateTime.UtcNow));
 
-            await interactivity.SendPaginatedMessageAsync(ctx.Channel, ctx.User, pages);
+            await interactivity.SendPaginatedMessageAsync(ctx.Channel, ctx.User, pages, timeoutoverride: TimeSpan.FromSeconds(30));
         }
 
         [Command("setlevel"), RequireUserPermissions(Permissions.Administrator), Description("Sets the level of a given user. Requires admin permissions.")]
