@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace DevExchangeBot.Storage.Models
 {
     public class UserModel
@@ -13,5 +15,7 @@ namespace DevExchangeBot.Storage.Models
         public int Level { get; set; }
 
         public int ExpToNextLevel => Level * 100 + 75;
+
+        public DateTime LastMessageTime { get; set; }
     }
 }

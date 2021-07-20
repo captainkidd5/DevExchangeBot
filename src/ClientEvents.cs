@@ -25,9 +25,11 @@ namespace DevExchangeBot
                 StorageContext.Model.AddUser(user);
             }
 
+            if (user.LastMessageTime + TimeSpan.FromMinutes(1) > e.Message.CreationTimestamp.DateTime) return;
+
             var content = e.Message.Content;
 
-            Regex.Replace(content, ":[0-9a-z]+:", "0", RegexOptions.IgnoreCase);
+            Regex.Replace(content, "<:[a-zA-Z]+:[0-9]+>", "0", RegexOptions.IgnoreCase);
             user.Exp += (int)Math.Round(content.Length / 2D * StorageContext.Model.ExpMultiplier, MidpointRounding.ToZero);
 
             if (user.Exp > user.ExpToNextLevel)
@@ -37,6 +39,8 @@ namespace DevExchangeBot
 
                 await e.Channel.SendMessageAsync($"{Program.Config.Emoji.Confetti} {e.Author.Mention} advanced to level {user.Level}!");
             }
+
+            user.LastMessageTime = e.Message.CreationTimestamp.DateTime;
         }
 
         public static async Task OnMessageCreatedAutoQuoter(DiscordClient sender, MessageCreateEventArgs e)
