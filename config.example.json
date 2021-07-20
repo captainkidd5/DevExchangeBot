@@ -12,14 +12,12 @@
     "CriticalError": ":bangbang:",
     "AccessDenied": ":raised_hand:",
     "Loading": ":pause_button:",
-    "Warning": ":warning:"
+    "Warning": ":warning:",
   },
   "RawHeartBoardEmojis": [
     ":star:"
   ],
-  "HeartboardRequirement": 5
-    "Loading": ":pause_button:"
-  },
+  "HeartboardRequirement": 5,
   "RoleMenu": {
     "Title": "Automatic Role Assignment",
     "Description": "Welcome to our server! These roles will help you present yourself.\r\nSimply react to the message with the role you want and I will automagically give it to you.\n\r\nNote: If you wish you can click multiple reactions for more roles!\r\n"
