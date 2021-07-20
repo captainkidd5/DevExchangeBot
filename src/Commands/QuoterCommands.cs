@@ -3,19 +3,19 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DevExchangeBot.Storage;
 using DSharpPlus;
-using DSharpPlus.CommandsNext;
-using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
 using Microsoft.Extensions.Logging;
 // ReSharper disable UnusedMember.Global
 
 namespace DevExchangeBot.Commands
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class QuoterCommands : BaseCommandModule
+    [SlashCommandGroup("quoter", "Commands related to the quoter module")]
+    public class QuoterCommands : SlashCommandModule
     {
-        [Command("quote"), Description("Quotes a message.")]
-        public async Task Quote(CommandContext ctx, [Description("Link to the message, only works in the current server.")] string link)
+        [SlashCommand("quote", "Quotes a message.")]
+        public async Task Quote(InteractionContext ctx, [Option("Link", "Link to the message, only works in the current server.")] string link)
         {
             var match = Regex.Match(link, "^https://discord.com/channels/([0-9]+)/([0-9]+)/([0-9]+)$");
 
@@ -36,25 +36,31 @@ namespace DevExchangeBot.Commands
                 return;
             }
 
-            await ctx.RespondAsync(new DiscordEmbedBuilder
+            var builder = new DiscordEmbedBuilder
                 {
                     Color = new DiscordColor(Program.Config.Color),
                     Description = message.Content
                 }
                 .WithAuthor($"{message.Author.Username}#{message.Author.Discriminator}", iconUrl:message.Author.AvatarUrl)
-                .AddField("Quoted by", $"{ctx.Member.Mention} from [#{message.Channel.Name}]({message.JumpLink})"));
+                .AddField("Quoted by", $"{ctx.Member.Mention} from [#{message.Channel.Name}]({message.JumpLink})");
+
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                new DiscordInteractionResponseBuilder().AddEmbed(builder));
         }
 
-        [Command("toggleautoquote"), RequireUserPermissions(Permissions.Administrator), Description("Toggles on or off the auto-quoter")]
-        public async Task ToggleAutoQuote(CommandContext ctx)
+        [SlashCommand("toggleautoquote", "Toggles on or off the auto-quoter"), SlashRequireUserPermissions(Permissions.Administrator)]
+        public async Task ToggleAutoQuote(InteractionContext ctx, [Option("Enabled", "Whether to enable the module")] bool enable)
         {
-            StorageContext.Model.AutoQuoterEnabled = !StorageContext.Model.AutoQuoterEnabled;
+            StorageContext.Model.AutoQuoterEnabled = enable;
 
-            await ctx.RespondAsync(new DiscordEmbedBuilder
+            var builder = new DiscordEmbedBuilder
             {
                 Color = new DiscordColor(Program.Config.Color),
                 Description = $"{Program.Config.Emoji.Success} Auto-quoter toggled to `{StorageContext.Model.AutoQuoterEnabled}`!"
-            });
+            };
+
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                new DiscordInteractionResponseBuilder().AddEmbed(builder).AsEphemeral(true));
         }
     }
 }
