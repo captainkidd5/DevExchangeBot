@@ -1,210 +1,203 @@
-using System.Text;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using DSharpPlus;
-using DSharpPlus.EventArgs;
 using DSharpPlus.Entities;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DevExchangeBot.Storage;
+using DevExchangeBot.Storage.Models;
+using DSharpPlus.Interactivity.Extensions;
+using Microsoft.Extensions.Logging;
+
+// ReSharper disable UnusedMember.Global
 
 namespace DevExchangeBot.Commands
 {
     [Group("rolemenu")]
-    [RequireUserPermissions(Permissions.Administrator)]
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class RoleMenuCommands : BaseCommandModule
     {
-        [Command("addrole"), Aliases("a")]
-        [Description("Adds a role to the menu")]
-        [RequireUserPermissions(Permissions.Administrator)]
-        public async Task AddRole(CommandContext ctx, DiscordRole role, DiscordEmoji emoji)
+        [Command("create")]
+        public async Task Create(CommandContext ctx, string menuName, bool allowMultipleSelection)
         {
-            await ctx.TriggerTypingAsync();
-
-            if (!StorageContext.Model.RoleMenu.HasRole(role))
-                StorageContext.Model.RoleMenu.AddRole(role, emoji);
-
-            var embed = new DiscordEmbedBuilder()
-                .WithColor(new DiscordColor(Program.Config.Color))
-                .WithFooter("This message will automatically disappear in 5 seconds!");
-
-            if (!StorageContext.Model.RoleMenu.HasRole(role))
+            if (StorageContext.Model.RoleMenus.Any(m => m.Name == menuName))
             {
-                var channel = await ctx.Client.GetChannelAsync(StorageContext.Model.RoleMenu.ChannelId);
-                await UpdateRoleMenu(ctx.Client, await channel.GetMessageAsync(StorageContext.Model.RoleMenu.MessageId));
-
-                embed.WithDescription($"{Program.Config.Emoji.Success} Added role: **{role.Name}** {emoji}");
-            }
-            else
-            {
-                embed.WithDescription($"{Program.Config.Emoji.Failure} Failed to update role: **{role.Name}** {emoji}!");
-                embed.WithColor(new DiscordColor(255, 0, 0));
-            }
-
-            var message = await ctx.RespondAsync(embed.Build());
-            await Task.Delay(5000);
-
-            await ctx.Message.DeleteAsync();
-            await message.DeleteAsync();
-        }
-
-        [Command("create"), Aliases("c")]
-        [Description("Creates a role menu in the current channel")]
-        [RequireUserPermissions(Permissions.Administrator)]
-        public async Task Create(CommandContext ctx)
-        {
-            var embed = CreateMenuEmbed(ctx.Client, ctx.Guild);
-            var message = await ctx.Channel.SendMessageAsync(embed);
-
-            foreach (DiscordEmoji emoji in StorageContext.Model.RoleMenu.GetAllEmojis(ctx.Client))
-                await message.CreateReactionAsync(emoji);
-
-            StorageContext.Model.RoleMenu.MessageId = message.Id;
-            StorageContext.Model.RoleMenu.ChannelId = message.ChannelId;
-
-            await ctx.Message.DeleteAsync();
-        }
-
-        // Just in case for some reason you want to switch the Role Menu
-        // without creating a new one
-        [Command("setmessage"), Aliases("m")]
-        [Description("Changes on which message the role menu should display")]
-        [RequireUserPermissions(Permissions.Administrator)]
-        public async Task SetMessage(CommandContext ctx, DiscordChannel channel, ulong messageId)
-        {
-            // Get the message
-            var message = await channel.GetMessageAsync(messageId);
-
-            // Assign the new message id and channel id
-            StorageContext.Model.RoleMenu.MessageId = message.Id;
-            StorageContext.Model.RoleMenu.ChannelId = message.ChannelId;
-
-            // Update Role Menu on the new message
-            await UpdateRoleMenu(ctx.Client, message);
-        }
-
-        private static async Task OnReacted(DiscordClient sender, MessageReactionAddEventArgs e)
-        {
-            if (StorageContext.Model.RoleMenu.MessageId == 0 || StorageContext.Model.RoleMenu.ChannelId == 0)
-                return; // Role Menu Not Created
-
-            if (e.User.IsBot || e.Message.Id != StorageContext.Model.RoleMenu.MessageId)
-                return; // Reaction Not On Role Menu
-
-            // Make sure the Role exists
-            if (!StorageContext.Model.RoleMenu.GetRoleId(e.Emoji, out ulong roleId))
-            {
-                await e.Message.DeleteReactionsEmojiAsync(e.Emoji);
+                await ctx.RespondAsync("This menu already exists!");
                 return;
             }
 
-            var member = (DiscordMember)e.User;
-            var role = member.Roles.Where(r => r.Id == roleId).FirstOrDefault();
-
-            // Decide whether the role is already granted. If so, revoke the role.
-            // This turns the emoji system into a toggle to enable/disable the role.
-            if (role != null)
+            StorageContext.Model.RoleMenus.Add(new RoleMenuModel
             {
-                await member.RevokeRoleAsync(role).ConfigureAwait(false);
-            }
-            else
-            {
-                role = e.Guild.GetRole(roleId);
-                await member.GrantRoleAsync(role).ConfigureAwait(false);
-            }
+                Options = new List<RoleOption>(),
+                AllowMultipleSelection = allowMultipleSelection,
+                Name = menuName
+            });
 
-            await e.Message.DeleteReactionAsync(e.Emoji, e.User).ConfigureAwait(false);
+            await ctx.RespondAsync("Entry added, add roles with `addrole` command");
         }
 
-        private static async Task UpdateRoleMenu(DiscordClient client, DiscordMessage message)
+        [Command("suppress")]
+        public async Task Suppress(CommandContext ctx, string menuName)
         {
-            // Update the message
-            var embed = CreateMenuEmbed(client, message.Channel.Guild);
-            await message.ModifyAsync(embed).ConfigureAwait(false);
-
-            // Set up reactions again
-            await message.DeleteAllReactionsAsync();
-
-            // Add Role Reactions
-            foreach (DiscordEmoji emoji in StorageContext.Model.RoleMenu.GetAllEmojis(client))
-                await message.CreateReactionAsync(emoji);
-        }
-
-        private static DiscordEmbed CreateMenuEmbed(DiscordClient client, DiscordGuild guild)
-        {
-            // Build the Description
-            var builder = new StringBuilder();
-            builder.AppendLine(Program.Config.RoleMenu.Description);
-
-            // Build the Roles and Emojis
-            foreach (DiscordEmoji emoji in StorageContext.Model.RoleMenu.GetAllEmojis(client))
+            if (StorageContext.Model.RoleMenus.All(m => m.Name != menuName))
             {
-                // Make sure the Role exists then add it onto the description
-                if (!StorageContext.Model.RoleMenu.GetRoleId(emoji, out ulong roleId))
-                    continue;
-
-                var role = guild.GetRole(roleId);
-                builder.AppendLine($"{emoji} - {role.Name}");
+                await ctx.RespondAsync("This menu does not exist!");
+                return;
             }
 
-            // Wrap it up in a nice Embed
-            var embed = new DiscordEmbedBuilder()
-                .WithColor(new DiscordColor(Program.Config.Color))
-                .WithTitle(Program.Config.RoleMenu.Title)
-                .WithDescription(builder.ToString());
+            var message = await ctx.RespondAsync("React below to confirm menu deletion.");
+            await message.CreateReactionAsync(DiscordEmoji.FromName(ctx.Client, ":white_check_mark:"));
 
-            return embed.Build();
+            var interactivity = ctx.Client.GetInteractivity();
+
+            var result = await interactivity.WaitForReactionAsync(
+                r => r.Emoji == DiscordEmoji.FromName(ctx.Client, ":white_check_mark:"),
+                message, ctx.User);
+
+            if (result.TimedOut)
+            {
+                await message.DeleteAllReactionsAsync();
+                await message.ModifyAsync("Timed out!");
+                return;
+            }
+
+            StorageContext.Model.RoleMenus.Remove(StorageContext.Model.RoleMenus.First(m => m.Name == menuName));
+
+            await ctx.RespondAsync("Menu removed!");
         }
 
-        public static async Task Initialize(DiscordClient client)
+        [Command("changeselectiontype")]
+        public async Task ChangeSelectionType(CommandContext ctx, string menuName, bool multipleSelection)
         {
-            // If the config exists then check if anyone reacted while the bot was offline
-            if (StorageContext.Model.RoleMenu.ChannelId != 0)
+            if (StorageContext.Model.RoleMenus.All(m => m.Name != menuName))
             {
-                // Get the Role Menu Message
-                var channel = await client.GetChannelAsync(StorageContext.Model.RoleMenu.ChannelId);
-                var message = await channel.GetMessageAsync(StorageContext.Model.RoleMenu.MessageId);
+                await ctx.RespondAsync("This menu does not exist!");
+                return;
+            }
 
-                if (message.Channel == null)
+            var menu = StorageContext.Model.RoleMenus.First(m => m.Name == menuName);
+
+            menu.AllowMultipleSelection = multipleSelection;
+        }
+
+        [Command("spawn"), Aliases("s"), Description("Creates a role menu in the current channel"), RequireUserPermissions(Permissions.Administrator)]
+        public async Task Spawn(CommandContext ctx, string menuName)
+        {
+            if (StorageContext.Model.RoleMenus.All(m => m.Name != menuName))
+            {
+                await ctx.RespondAsync("This menu does not exist!");
+                return;
+            }
+
+            var menu = StorageContext.Model.RoleMenus.First(m => m.Name == menuName);
+
+            if (!menu.Options.Any())
+            {
+                await ctx.RespondAsync("This menu is empty!");
+                return;
+            }
+
+            var dropdownOptions = new List<DiscordSelectComponentOption>();
+
+            foreach (var option in menu.Options)
+            {
+                DiscordEmoji emoji = null;
+                try
                 {
-                    // I don't know why. I shouldn't have to wonder why.
-                    // But for some reason randomly the GetMessageAsync
-                    // returns a message that doesn't have a channel
-                    // So we have to skip checking for reactions
-                    client.MessageReactionAdded += OnReacted;
-                    return;
+                    emoji = ulong.TryParse(option.Emoji, out var emojiId)
+                        ? DiscordEmoji.FromGuildEmote(ctx.Client, emojiId)
+                        : DiscordEmoji.FromName(ctx.Client, option.Emoji);
+                }
+                catch (Exception e)
+                {
+                    ctx.Client.Logger.LogWarning(e, "Could not get emoji of ID '{EmojiID}'", option.Emoji);
                 }
 
-                // Get all reactions
-                foreach (DiscordReaction reaction in message.Reactions)
-                {
-                    if (reaction.Count == 1)
-                        continue;
 
-                    if (StorageContext.Model.RoleMenu.GetRoleId(reaction.Emoji, out ulong roleId))
-                    {
-                        var users = await message.GetReactionsAsync(reaction.Emoji);
+                var role = ctx.Guild.GetRole(option.RoleId);
 
-                        // Get users who reacted with the emoji
-                        foreach (DiscordUser user in users)
-                        {
-                            if (user.IsBot)
-                                continue;
-
-                            // Grant role to user
-                            DiscordMember member = await channel.Guild.GetMemberAsync(user.Id);
-                            await member.GrantRoleAsync(member.Guild.GetRole(roleId));
-                        }
-                    }
-                }
-
-                // In case someone reacted with an emoji outside of our list
-                // refresh the message to remove it
-                await UpdateRoleMenu(client, message);
+                dropdownOptions.Add(new DiscordSelectComponentOption(role.Name, role.Id.ToString(), option.Description,
+                    false, emoji != null ? new DiscordComponentEmoji(emoji) : null));
             }
 
-            // Listen to reactions on the Role Menu
-            client.MessageReactionAdded += OnReacted;
+            var roleMenu = new DiscordSelectComponent($"roleMenu_{menu.Name}", "Select your role",
+                dropdownOptions, false, 0, menu.AllowMultipleSelection ? dropdownOptions.Count : 1);
+
+            var builder = new DiscordMessageBuilder()
+                .WithContent("Select your roles below")
+                .AddComponents(roleMenu);
+
+            await builder.SendAsync(ctx.Channel);
+        }
+
+        [Command("addrole"), Aliases("add"), Description("Adds a role to the menu"), RequireUserPermissions(Permissions.Administrator)]
+        public async Task AddRole(CommandContext ctx, string menuName, DiscordRole role, DiscordEmoji emoji, [RemainingText] string description)
+        {
+            await ctx.TriggerTypingAsync();
+
+            if (StorageContext.Model.RoleMenus.All(m => m.Name != menuName))
+            {
+                await ctx.RespondAsync("This menu does not exist!");
+                return;
+            }
+
+            var menu = StorageContext.Model.RoleMenus.First(m => m.Name == menuName);
+
+            if (menu.Options
+                .Any(o => o.RoleId == role.Id))
+            {
+                await ctx.RespondAsync("This role is already in this menu!");
+                return;
+            }
+
+            try
+            {
+                if (emoji.Id != 0)
+                {
+                    var _ = DiscordEmoji.FromGuildEmote(ctx.Client, emoji.Id);
+                }
+            }
+            catch
+            {
+                await ctx.RespondAsync(
+                    "It looks like the emoji you provided is an external emoji the bot does not have access to, please try again with another emoji.");
+                return;
+            }
+
+            menu.Options.Add(new RoleOption
+            {
+                RoleId = role.Id,
+                Description = description,
+                Emoji = emoji.Id == 0 ? emoji.GetDiscordName() : emoji.Id.ToString()
+            });
+
+            await ctx.RespondAsync("Succesfully added the role to the menu!");
+        }
+
+        [Command("delrole"), Aliases("del"), Description("Dels a role from the menu"), RequireUserPermissions(Permissions.Administrator)]
+        public async Task DelRole(CommandContext ctx, string menuName, DiscordRole role)
+        {
+            await ctx.TriggerTypingAsync();
+
+            if (StorageContext.Model.RoleMenus.All(m => m.Name != menuName))
+            {
+                await ctx.RespondAsync("This menu does not exist!");
+                return;
+            }
+
+            var menu = StorageContext.Model.RoleMenus.First(m => m.Name == menuName);
+
+            if (menu.Options.All(o => o.RoleId != role.Id))
+            {
+                await ctx.RespondAsync("This role is not in this menu!");
+                return;
+            }
+
+            menu.Options.RemoveAt(menu.Options.IndexOf(menu.Options.First(o => o.RoleId == role.Id)));
+
+            await ctx.RespondAsync("Succesfully removed the role to the menu!");
         }
     }
 }
