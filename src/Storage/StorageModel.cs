@@ -14,7 +14,7 @@ namespace DevExchangeBot.Storage
 
         public bool AutoQuoterEnabled { get; set; }
 
-        public RoleMenuModel RoleMenu { get; set; }
+        public IList<RoleMenuModel> RoleMenus { get; set; }
 
         public StorageModel()
         {
@@ -22,7 +22,7 @@ namespace DevExchangeBot.Storage
             ExpMultiplier = 1;
 
             HeartboardMessages = new Dictionary<ulong, ulong>();
-            RoleMenu = new RoleMenuModel();
+            RoleMenus = new List<RoleMenuModel>();
         }
 
         public void AddUser(UserModel user)
