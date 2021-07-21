@@ -83,7 +83,7 @@ namespace DevExchangeBot.Commands
         }
 
         [Command("spawn"), Aliases("s"), Description("Creates a role menu in the current channel"), RequireUserPermissions(Permissions.Administrator)]
-        public async Task Spawn(CommandContext ctx, string menuName)
+        public async Task Spawn(CommandContext ctx, string menuName, bool inEmbed = false, string message = "Select your roles below")
         {
             if (StorageContext.Model.RoleMenus.All(m => m.Name != menuName))
             {
@@ -126,8 +126,18 @@ namespace DevExchangeBot.Commands
                 dropdownOptions, false, 0, menu.AllowMultipleSelection ? dropdownOptions.Count : 1);
 
             var builder = new DiscordMessageBuilder()
-                .WithContent("Select your roles below")
                 .AddComponents(roleMenu);
+
+            if (inEmbed)
+            {
+                var embed = new DiscordEmbedBuilder()
+                    .WithColor(new DiscordColor(Program.Config.Color))
+                    .WithDescription(message);
+                builder.AddEmbed(embed);
+            }
+            else
+                builder.WithContent(message);
+
 
             await builder.SendAsync(ctx.Channel);
         }
