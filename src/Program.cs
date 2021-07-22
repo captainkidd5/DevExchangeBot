@@ -52,6 +52,7 @@ namespace DevExchangeBot
             Client.GuildMemberRemoved += ClientEvents.OnGuildMemberRemoved;
             Client.MessageReactionAdded += ClientEvents.OnMessageReactionAdded;
             Client.MessageReactionRemoved += ClientEvents.OnMessageReactionRemoved;
+            Client.ComponentInteractionCreated += ClientEvents.OnComponentInteractionCreated;
 
             var commands = Client.UseCommandsNext(new CommandsNextConfiguration()
             {
@@ -78,7 +79,6 @@ namespace DevExchangeBot
             StorageContext.InitializeStorage();
 
             await Client.ConnectAsync();
-            await RoleMenuCommands.Initialize(Client);
 
             await Task.Delay(-1);
         }

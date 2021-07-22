@@ -222,5 +222,58 @@ namespace DevExchangeBot
                 }
             }
         }
+
+        public static Task OnComponentInteractionCreated(DiscordClient sender, ComponentInteractionCreateEventArgs e)
+        {
+            var match = Regex.Match(e.Id, "^roleMenu_(.+$)");
+            if (!match.Success) return Task.CompletedTask;
+
+            _ = Task.Run(async () =>
+            {
+                var menuName = match.Groups[1].Value;
+
+                if (StorageContext.Model.RoleMenus.All(m => m.Name != menuName))
+                {
+                    sender.Logger.LogWarning("Could not get menu of name '{MenuName}', data may have been altered", menuName);
+                    return;
+                }
+
+                var menu = StorageContext.Model.RoleMenus.First(m => m.Name == menuName);
+
+                var member = await e.Guild.GetMemberAsync(e.User.Id);
+
+                foreach (var option in menu.Options.Where(o => !e.Values.Contains(o.RoleId.ToString())))
+                {
+                    try
+                    {
+                        var role = e.Guild.GetRole(option.RoleId);
+                        await member.RevokeRoleAsync(role);
+                    }
+                    catch (Exception exception)
+                    {
+                        sender.Logger.LogWarning(exception, "Could not either get role of ID '{RoleId}' or revoke the previous role from user '{Username}#{Tag}' ({UserID})",
+                            option.RoleId, member.Username, member.Discriminator, member.Id);
+                    }
+                }
+
+                foreach (var value in e.Values)
+                {
+                    try
+                    {
+                        var role = e.Guild.GetRole(ulong.Parse(value));
+                        await member.GrantRoleAsync(role);
+                    }
+                    catch (Exception exception)
+                    {
+                        sender.Logger.LogWarning(exception, "Could not either get role of ID '{RoleId}' or grant the previous role from user '{Username}#{Tag}' ({UserID})",
+                            value, member.Username, member.Discriminator, member.Id);
+                    }
+                }
+
+                await e.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder().WithContent("Roles updated").AsEphemeral(true));
+            });
+            return Task.CompletedTask;
+        }
     }
 }
