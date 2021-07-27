@@ -9,10 +9,12 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Entities;
+using DSharpPlus.Exceptions;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 using DSharpPlus.SlashCommands.EventArgs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -53,22 +55,23 @@ namespace DevExchangeBot
             Client.GuildMemberRemoved += ClientEvents.OnGuildMemberRemoved;
             Client.MessageReactionAdded += ClientEvents.OnMessageReactionAdded;
             Client.MessageReactionRemoved += ClientEvents.OnMessageReactionRemoved;
-            Client.ComponentInteractionCreated += ClientEvents.OnComponentInteractionCreated;
+            Client.ComponentInteractionCreated += ClientEvents.OnComponentInteractionCreatedRoleMenu;
+            Client.ComponentInteractionCreated += ClientEvents.OnComponentInteractionCreatedRoleMenuSuppression;
 
-            var commands = Client.UseCommandsNext(new CommandsNextConfiguration
-            {
-                EnableDms = false,
-                EnableMentionPrefix = false,
-                StringPrefixes = new [] { Config.Prefix },
-                IgnoreExtraArguments = true
-            });
+            // var commands = Client.UseCommandsNext(new CommandsNextConfiguration
+            // {
+            //     EnableDms = false,
+            //     EnableMentionPrefix = false,
+            //     StringPrefixes = new [] { Config.Prefix },
+            //     IgnoreExtraArguments = true
+            // });
 
             //commands.CommandErrored += OnCommandErrored;
 
             //commands.RegisterCommands<LevellingCommands>();
             //commands.RegisterCommands<HeartboardCommands>();
             //commands.RegisterCommands<QuoterCommands>();
-            commands.RegisterCommands<RoleMenuCommands>();
+            //commands.RegisterCommands<RoleMenuCommands>();
 
             Client.UseInteractivity(new InteractivityConfiguration
             {
@@ -79,10 +82,14 @@ namespace DevExchangeBot
 
             var slash = Client.UseSlashCommands();
 
-            slash.RegisterCommands<LevellingCommands>(802900619328225290); //TODO: Precise your own guildID here!
-            slash.RegisterCommands<HeartboardCommands>(802900619328225290); //TODO: Precise your own guildID here!
-            slash.RegisterCommands<QuoterCommands>(802900619328225290); //TODO: Precise your own guildID here!
-            //slash.RegisterCommands<RoleMenuCommands>();
+            if (Config.GuildId != 0)
+            {
+                slash.RegisterCommands<LevellingCommands>(Config
+                    .GuildId); //TODO: Precise your own guildID in config.json!
+                slash.RegisterCommands<HeartboardCommands>(Config.GuildId);
+                slash.RegisterCommands<QuoterCommands>(Config.GuildId);
+                slash.RegisterCommands<RoleMenuCommands>(Config.GuildId);
+            }
 
             slash.SlashCommandErrored += OnCommandErrored;
 
