@@ -147,17 +147,8 @@ namespace DevExchangeBot.Commands
         }
 
         [SlashCommand("setmultiplier", "Sets the global EXP multiplier. Requires admin permissions."), SlashRequireUserPermissions(Permissions.Administrator)]
-        public async Task SetXpMultiplier(InteractionContext ctx, [Option("Multiplier", "Global multiplier to apply.")] string multiplierString)
+        public async Task SetXpMultiplier(InteractionContext ctx, [Option("Multiplier", "Global multiplier to apply.")] double multiplier)
         {
-            if (!float.TryParse(multiplierString, out var multiplier))
-            {
-                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
-                    new DiscordInteractionResponseBuilder()
-                        .WithContent($"{Program.Config.Emoji.Failure} Oops, this number is too big!")
-                        .AsEphemeral(true));
-                return;
-            }
-
             if (multiplier <= 0)
             {
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
@@ -167,7 +158,7 @@ namespace DevExchangeBot.Commands
                 return;
             }
 
-            StorageContext.Model.ExpMultiplier = multiplier;
+            StorageContext.Model.ExpMultiplier = (float) multiplier;
 
             var builder = new DiscordEmbedBuilder()
                 .WithDescription($"{Program.Config.Emoji.Success} EXP multiplier correctly set to {multiplier}!")
