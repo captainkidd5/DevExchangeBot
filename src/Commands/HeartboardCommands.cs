@@ -3,6 +3,7 @@ using DevExchangeBot.Storage;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
 
 // ReSharper disable UnusedMember.Global
 
