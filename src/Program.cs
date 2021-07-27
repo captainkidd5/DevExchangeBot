@@ -113,7 +113,7 @@ namespace DevExchangeBot
 
                     case SlashExecutionChecksFailedException cfe:
                     {
-                        if (cfe.FailedChecks.Any(x => x is SlashRequireUserPermissions))
+                        if (cfe.FailedChecks.Any(x => x is SlashRequireUserPermissionsAttribute))
                             embed = new DiscordEmbedBuilder
                             {
                                 Title = "Permission denied",
