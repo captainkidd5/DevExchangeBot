@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Text.RegularExpressions;
+using DevExchangeBot.Commands.Slash_Commands_Utilities;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DevExchangeBot.Storage;

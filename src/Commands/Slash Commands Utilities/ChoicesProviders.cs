@@ -3,9 +3,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using DevExchangeBot.Storage;
 using DSharpPlus.Entities;
+
 #pragma warning disable 1998
 
-namespace DevExchangeBot.Commands
+namespace DevExchangeBot.Commands.Slash_Commands_Utilities
 {
     public class MenuNamesChoiceProvider
     {
