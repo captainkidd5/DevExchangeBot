@@ -6,10 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DSharpPlus" Version="4.1.0-nightly-00921" />
-    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.1.0-nightly-00921" />
-    <PackageReference Include="DSharpPlus.Interactivity" Version="4.1.0-nightly-00921" />
-    <PackageReference Include="IDoEverything.DSharpPlus.SlashCommands" Version="1.6.1" />
+    <PackageReference Include="DSharpPlus" Version="4.1.0-nightly-00930" />
+    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.1.0-nightly-00930" />
+    <PackageReference Include="DSharpPlus.Interactivity" Version="4.1.0-nightly-00930" />
+    <PackageReference Include="IDoEverything.DSharpPlus.SlashCommands" Version="1.7.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
