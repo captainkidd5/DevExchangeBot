@@ -2,6 +2,7 @@
   "Token": "<YOUR DISCORD BOT TOKEN HERE>",
   "Prefix": "dx!",
   "Color": "#226383",
+  "GuildId": 0,
   "Emoji": {
     "Confetti": ":tada:",
     "GoldMedal": ":medal:",
