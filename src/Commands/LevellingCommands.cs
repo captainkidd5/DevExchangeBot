@@ -1,30 +1,32 @@
 ﻿using System;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using DevExchangeBot.Storage;
 using DevExchangeBot.Storage.Models;
 using DSharpPlus;
-using DSharpPlus.CommandsNext;
-using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using DSharpPlus.Interactivity.Enums;
-using DSharpPlus.Interactivity.Extensions;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
+
 // ReSharper disable UnusedMember.Global
 
 namespace DevExchangeBot.Commands
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class LevellingCommands : BaseCommandModule
+    [SlashCommandGroup("levelling", "Commands related to the levelling module")]
+    public class LevellingCommands : SlashCommandModule
     {
-        [Command("rank"), Aliases("r"), Description("Show the rank for self or a given user.")]
-        public async Task Rank(CommandContext ctx, [Description("User to show the rank of.")] DiscordMember mbr = null)
+        [SlashCommand("rank", "Show the rank for self or a given user.")]
+        public async Task Rank(InteractionContext ctx, [Option("Member", "User to show the rank of.")] DiscordUser mbr = null)
         {
             var talked = StorageContext.Model.Users.TryGetValue(mbr?.Id ?? ctx.Member.Id, out var user);
 
             if (user == null || user.Exp == 0 || !talked)
             {
-                await ctx.RespondAsync(":no_mouth: This user didn't talk yet");
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder()
+                        .WithContent(":no_mouth: This user didn't talk yet")
+                        .AsEphemeral(true));
                 return;
             }
 
@@ -34,20 +36,29 @@ namespace DevExchangeBot.Commands
 
             var rank = orderedList.IndexOf(user) + 1;
 
-            await ctx.RespondAsync(new DiscordEmbedBuilder()
+            var embed = new DiscordEmbedBuilder()
                 .WithTitle($"{mbr?.Username ?? ctx.Member.Username}#{mbr?.Discriminator ?? ctx.Member.Discriminator}'s {(rank == 1 ? Program.Config.Emoji.GoldMedal : null)} ranking stats:")
                 .WithDescription($"Level: **{user.Level}**\nEXP: **{user.Exp}**/{user.ExpToNextLevel}\nRank: **{rank}**/{orderedList.Count}")
                 .WithColor(new DiscordColor(Program.Config.Color))
                 .WithThumbnail(mbr?.AvatarUrl ?? ctx.Member.AvatarUrl)
                 .WithTimestamp(DateTime.UtcNow)
-                .Build());
+                .Build();
+
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                new DiscordInteractionResponseBuilder().AddEmbed(embed).AsEphemeral(true));
         }
 
-        [Command("leaderboard"), Aliases("lb"), Description("Shows the leaderboard for this server.")]
-        public async Task Leaderboard(CommandContext ctx)
+        [SlashCommand("leaderboard", "Shows the leaderboard for this server.")]
+        public async Task Leaderboard(InteractionContext ctx, [Option("Page", "Page of the leaderboard")] long pageLong = 1)
         {
-            await ctx.TriggerTypingAsync();
-            var message = await ctx.RespondAsync($"{Program.Config.Emoji.Loading} Bot is thinking...");
+            if (!int.TryParse(pageLong.ToString(), out var page))
+            {
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder()
+                        .WithContent($"{Program.Config.Emoji.Failure} Oops, this number is too big!")
+                        .AsEphemeral(true));
+                return;
+            }
 
             if (StorageContext.Model.Users.Count < 1)
                 return;
@@ -56,35 +67,65 @@ namespace DevExchangeBot.Commands
                 .OrderByDescending(u => u.Level)
                 .ThenByDescending(u => u.Exp).ToList();
 
-            var builder = new StringBuilder();
+            var length = orderedList.Count;
+
+            var pageNumber = length;
+
+            while (pageNumber % 10 != 0)
+                pageNumber++;
+
+            pageNumber /= 10;
+
+            if (page > pageNumber)
+            {
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder()
+                        .WithContent($"{Program.Config.Emoji.Failure} This page does not exist!")
+                        .AsEphemeral(true));
+                return;
+            }
+
+            orderedList.RemoveRange(0, (page - 1) * 10);
+
+            var builder = new DiscordEmbedBuilder();
             var index = 1;
 
-            foreach (var user in orderedList)
+            foreach (var user in orderedList.Take(10))
             {
                 var member = await ctx.Guild.GetMemberAsync(user.Id);
 
-                builder.AppendLine($"{index}. {member.Mention} Level: {user.Level} | EXP: {user.Exp}/{user.ExpToNextLevel} " +
+                builder.AddField($"{index}. {member.Username}#{member.Discriminator}", $"Level: {user.Level} | EXP: {user.Exp}/{user.ExpToNextLevel} " +
                     $"{(index switch { 1 => Program.Config.Emoji.GoldMedal, 2 => Program.Config.Emoji.SilverMedal, 3 => Program.Config.Emoji.BronzeMedal, _ => null })}");
 
                 ++index;
             }
 
-            var interactivity = ctx.Client.GetInteractivity();
-            await message.DeleteAsync();
+            builder.WithFooter($"{page}/{pageNumber}");
 
-            var pages = interactivity.GeneratePagesInEmbed(builder.ToString(), SplitType.Line, new DiscordEmbedBuilder()
-                .WithColor(new DiscordColor(Program.Config.Color))
-                .WithTimestamp(DateTime.UtcNow));
-
-            await interactivity.SendPaginatedMessageAsync(ctx.Channel, ctx.User, pages);
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                new DiscordInteractionResponseBuilder()
+                    .AddEmbed(builder)
+                    .AsEphemeral(true));
         }
 
-        [Command("setlevel"), RequireUserPermissions(Permissions.Administrator), Description("Sets the level of a given user. Requires admin permissions.")]
-        public async Task SetLevel(CommandContext ctx, [Description("Members to set the level of.")] DiscordMember member, [Description("Level to set.")] int level)
+        [SlashCommand("setlevel", "Sets the level of a given user. Requires admin permissions."), SlashRequireUserPermissions(Permissions.Administrator)]
+        public async Task SetLevel(InteractionContext ctx, [Option("Member", "Member to set the level of")] DiscordUser member, [Option("Level", "Level to set.")] long levelLong)
         {
+            if (!int.TryParse(levelLong.ToString(), out var level))
+            {
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder()
+                        .WithContent($"{Program.Config.Emoji.Failure} Oops, this number is too big!")
+                        .AsEphemeral(true));
+                return;
+            }
+
             if (member.IsBot)
             {
-                await ctx.RespondAsync($"{Program.Config.Emoji.Failure} Cannot set level of a bot!");
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder()
+                        .WithContent($"{Program.Config.Emoji.Failure} Cannot set the level of a bot!")
+                        .AsEphemeral(true));
                 return;
             }
 
@@ -96,25 +137,38 @@ namespace DevExchangeBot.Commands
 
             user.Level = level;
 
-            await ctx.RespondAsync(new DiscordEmbedBuilder()
+            var builder = new DiscordEmbedBuilder()
                 .WithDescription($"{Program.Config.Emoji.Success} Level of {member.Mention} correctly set to {level}!")
-                .WithColor(new DiscordColor(Program.Config.Color)));
+                .WithColor(new DiscordColor(Program.Config.Color));
+
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                new DiscordInteractionResponseBuilder()
+                    .AddEmbed(builder)
+                    .AsEphemeral(true));
         }
 
-        [Command("setmultiplier"), RequireUserPermissions(Permissions.Administrator), Description("Sets the global EXP multiplier. Requires admin permissions.")]
-        public async Task SetXpMultiplier(CommandContext ctx, [Description("Global multiplier to apply.")] float multiplier)
+        [SlashCommand("setmultiplier", "Sets the global EXP multiplier. Requires admin permissions."), SlashRequireUserPermissions(Permissions.Administrator)]
+        public async Task SetXpMultiplier(InteractionContext ctx, [Option("Multiplier", "Global multiplier to apply.")] double multiplier)
         {
             if (multiplier <= 0)
             {
-                await ctx.RespondAsync($"{Program.Config.Emoji.Failure} Multiplier needs to be strictly above 0!");
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder()
+                        .WithContent($"{Program.Config.Emoji.Failure} Cannot set the level of a bot!")
+                        .AsEphemeral(true));
                 return;
             }
 
-            StorageContext.Model.ExpMultiplier = multiplier;
+            StorageContext.Model.ExpMultiplier = (float) multiplier;
 
-            await ctx.RespondAsync(new DiscordEmbedBuilder()
+            var builder = new DiscordEmbedBuilder()
                 .WithDescription($"{Program.Config.Emoji.Success} EXP multiplier correctly set to {multiplier}!")
-                .WithColor(new DiscordColor(Program.Config.Color)));
+                .WithColor(new DiscordColor(Program.Config.Color));
+
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                new DiscordInteractionResponseBuilder()
+                    .AddEmbed(builder)
+                    .AsEphemeral(true));
         }
     }
 }

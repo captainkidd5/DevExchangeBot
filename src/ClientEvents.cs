@@ -223,7 +223,7 @@ namespace DevExchangeBot
             }
         }
 
-        public static Task OnComponentInteractionCreated(DiscordClient sender, ComponentInteractionCreateEventArgs e)
+        public static Task OnComponentInteractionCreatedRoleMenu(DiscordClient sender, ComponentInteractionCreateEventArgs e)
         {
             var match = Regex.Match(e.Id, "^roleMenu_(.+$)");
             if (!match.Success) return Task.CompletedTask;
@@ -274,6 +274,40 @@ namespace DevExchangeBot
                     new DiscordInteractionResponseBuilder().WithContent("Roles updated").AsEphemeral(true));
             });
             return Task.CompletedTask;
+        }
+
+        public static async Task OnComponentInteractionCreatedRoleMenuSuppression(DiscordClient sender, ComponentInteractionCreateEventArgs e)
+        {
+            var match = Regex.Match(e.Id, "^deleteMenu_(.+$)");
+            if (!match.Success)
+                return;
+
+            if (e.Id == "cancelMenuSuppression")
+            {
+                await e.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage,
+                    new DiscordInteractionResponseBuilder()
+                        .WithContent($"{Program.Config.Emoji.Success} Action cancelled, nothing has been erased!")
+                        .AsEphemeral(true));
+                return;
+            }
+
+            _ = Task.Run(async () =>
+            {
+                var menuName = match.Groups[1].Value;
+
+                if (StorageContext.Model.RoleMenus.All(m => m.Name != menuName))
+                {
+                    sender.Logger.LogWarning("Could not get menu of name '{MenuName}', data may have been altered", menuName);
+                    return;
+                }
+
+                StorageContext.Model.RoleMenus.Remove(StorageContext.Model.RoleMenus.First(m => m.Name == menuName));
+
+                await e.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage,
+                    new DiscordInteractionResponseBuilder()
+                        .WithContent($"{Program.Config.Emoji.Success} Menu successfully deleted!")
+                        .AsEphemeral(true));
+            });
         }
     }
 }

@@ -3,18 +3,19 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using DevExchangeBot.Commands;
-using DSharpPlus;
-using Newtonsoft.Json;
 using DevExchangeBot.Configuration;
 using DevExchangeBot.Storage;
-using DSharpPlus.CommandsNext;
-using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus;
 using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.Attributes;
+using DSharpPlus.SlashCommands.EventArgs;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace DevExchangeBot
 {
@@ -40,7 +41,7 @@ namespace DevExchangeBot
         private static async Task MainAsync()
         {
             // Initialize a new client to establish a connection toe the Discord API.
-            Client = new DiscordClient(new DiscordConfiguration()
+            Client = new DiscordClient(new DiscordConfiguration
             {
                 Token = Config.Token,
                 TokenType = TokenType.Bot,
@@ -52,29 +53,43 @@ namespace DevExchangeBot
             Client.GuildMemberRemoved += ClientEvents.OnGuildMemberRemoved;
             Client.MessageReactionAdded += ClientEvents.OnMessageReactionAdded;
             Client.MessageReactionRemoved += ClientEvents.OnMessageReactionRemoved;
-            Client.ComponentInteractionCreated += ClientEvents.OnComponentInteractionCreated;
+            Client.ComponentInteractionCreated += ClientEvents.OnComponentInteractionCreatedRoleMenu;
+            Client.ComponentInteractionCreated += ClientEvents.OnComponentInteractionCreatedRoleMenuSuppression;
 
-            var commands = Client.UseCommandsNext(new CommandsNextConfiguration()
-            {
-                EnableDms = false,
-                EnableMentionPrefix = false,
-                StringPrefixes = new [] { Config.Prefix },
-                IgnoreExtraArguments = true
-            });
+            // var commands = Client.UseCommandsNext(new CommandsNextConfiguration
+            // {
+            //     EnableDms = false,
+            //     EnableMentionPrefix = false,
+            //     StringPrefixes = new [] { Config.Prefix },
+            //     IgnoreExtraArguments = true
+            // });
 
-            commands.CommandErrored += OnCommandErrored;
+            //commands.CommandErrored += OnCommandErrored;
 
-            commands.RegisterCommands<LevellingCommands>();
-            commands.RegisterCommands<HeartboardCommands>();
-            commands.RegisterCommands<QuoterCommands>();
-            commands.RegisterCommands<RoleMenuCommands>();
+            //commands.RegisterCommands<LevellingCommands>();
+            //commands.RegisterCommands<HeartboardCommands>();
+            //commands.RegisterCommands<QuoterCommands>();
+            //commands.RegisterCommands<RoleMenuCommands>();
 
-            Client.UseInteractivity(new InteractivityConfiguration()
+            Client.UseInteractivity(new InteractivityConfiguration
             {
                 Timeout = TimeSpan.FromSeconds(30),
                 PaginationBehaviour = PaginationBehaviour.WrapAround,
                 PaginationDeletion = PaginationDeletion.DeleteEmojis
             });
+
+            var slash = Client.UseSlashCommands();
+
+            if (Config.GuildId != 0)
+            {
+                slash.RegisterCommands<LevellingCommands>(Config
+                    .GuildId); //TODO: Precise your own guildID in config.json!
+                slash.RegisterCommands<HeartboardCommands>(Config.GuildId);
+                slash.RegisterCommands<QuoterCommands>(Config.GuildId);
+                slash.RegisterCommands<RoleMenuCommands>(Config.GuildId);
+            }
+
+            slash.SlashCommandErrored += OnCommandErrored;
 
             StorageContext.InitializeStorage();
 
@@ -83,12 +98,12 @@ namespace DevExchangeBot
             await Task.Delay(-1);
         }
 
-        private static async Task OnCommandErrored(CommandsNextExtension sender, CommandErrorEventArgs e)
+        private static async Task OnCommandErrored(SlashCommandsExtension slashCommandsExtension, SlashCommandErrorEventArgs e)
         {
             e.Context.Client.Logger.LogError(new EventId(0, "Error"), e.Exception,
                 "User '{Username}#{Discriminator}' ({UserId}) tried to execute '{Command}' "
                 + "in #{ChannelName} ({ChannelId}) and failed with {ExceptionType}: {ExceptionMessage}",
-                e.Context.User.Username, e.Context.User.Discriminator, e.Context.User.Id, e.Command?.QualifiedName ?? "<unknown command>", e.Context.Channel.Name, e.Context.Channel.Id, e.Exception.GetType(), e.Exception.Message);
+                e.Context.User.Username, e.Context.User.Discriminator, e.Context.User.Id, e.Context.CommandName ?? "<unknown command>", e.Context.Channel.Name, e.Context.Channel.Id, e.Exception.GetType(), e.Exception.Message);
 
             DiscordEmbedBuilder embed = null;
 
@@ -101,38 +116,14 @@ namespace DevExchangeBot
                     case CommandNotFoundException:
                         break; // Ignore
 
-                    case ChecksFailedException cfe:
+                    case SlashExecutionChecksFailedException cfe:
                     {
-                        if (cfe.FailedChecks.Any(x => x is RequireUserPermissionsAttribute))
+                        if (cfe.FailedChecks.Any(x => x is SlashRequireUserPermissionsAttribute))
                             embed = new DiscordEmbedBuilder
                             {
                                 Title = "Permission denied",
                                 Description =
-                                    $"{Program.Config.Emoji.AccessDenied} You lack permissions necessary to run this command.",
-                                Color = new DiscordColor(0xFF0000)
-                            };
-
-                        if (cfe.FailedChecks.Any(x => x is RequireBotPermissionsAttribute))
-                            embed = new DiscordEmbedBuilder
-                            {
-                                Title = "Permission denied",
-                                Description = $"{Program.Config.Emoji.AccessDenied} The bot is lacking permissions necessary to run this command.",
-                                Color = new DiscordColor(0xFF0000)
-                            };
-
-                        if (cfe.FailedChecks.Any(x => x is RequireOwnerAttribute))
-                            embed = new DiscordEmbedBuilder
-                            {
-                                Title = "Permission denied",
-                                Description = $"{Program.Config.Emoji.AccessDenied} Only the owner can run this command.",
-                                Color = new DiscordColor(0xFF0000)
-                            };
-
-                        if (cfe.FailedChecks.Any(x => x is CooldownAttribute))
-                            embed = new DiscordEmbedBuilder
-                            {
-                                Title = "Permission denied",
-                                Description = $"{Program.Config.Emoji.Loading} This command is under cooldown, please wait.",
+                                    $"{Config.Emoji.AccessDenied} You lack permissions necessary to run this command.",
                                 Color = new DiscordColor(0xFF0000)
                             };
 
@@ -140,20 +131,25 @@ namespace DevExchangeBot
                     }
 
                     case ArgumentException:
-                        await e.Context.RespondAsync($"{Program.Config.Emoji.Failure} Oops, you used a wrong argument. Use ``{e.Context.Prefix}help {e.Command?.QualifiedName}`` to get info.");
+                        await e.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                            new DiscordInteractionResponseBuilder()
+                                .WithContent($"{Config.Emoji.Failure} Oops, you used a wrong argument!")
+                                .AsEphemeral(true));
                         break;
                     default:
                         embed = new DiscordEmbedBuilder
                         {
                             Title = "A problem occured while executing the command",
-                            Description = $"{Program.Config.Emoji.CriticalError} {Formatter.InlineCode(e.Command?.QualifiedName)} threw an exception: `{ex?.GetType()}: {ex?.Message}`",
+                            Description = $"{Config.Emoji.CriticalError} {Formatter.InlineCode(e.Context.CommandName)} threw an exception: `{ex?.GetType()}: {ex?.Message}`",
                             Color = new DiscordColor(0xFF0000)
                         };
                         break;
                 }
 
                 if (embed != null)
-                    await e.Context.RespondAsync(embed.Build());
+                    await e.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                        new DiscordInteractionResponseBuilder()
+                            .AddEmbed(embed).AsEphemeral(true));
         }
     }
 }
