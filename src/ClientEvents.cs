@@ -32,7 +32,7 @@ namespace DevExchangeBot
             Regex.Replace(content, "<:[a-zA-Z]+:[0-9]+>", "0", RegexOptions.IgnoreCase);
             user.Exp += (int)Math.Round(content.Length / 2D * StorageContext.Model.ExpMultiplier, MidpointRounding.ToZero);
 
-            if (user.Exp > user.ExpToNextLevel)
+            while (user.Exp > user.ExpToNextLevel)
             {
                 user.Exp -= user.ExpToNextLevel;
                 user.Level += 1;
