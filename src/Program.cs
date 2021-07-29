@@ -82,8 +82,7 @@ namespace DevExchangeBot
 
             if (Config.GuildId != 0)
             {
-                slash.RegisterCommands<LevellingCommands>(Config
-                    .GuildId); //TODO: Precise your own guildID in config.json!
+                slash.RegisterCommands<LevellingCommands>(Config.GuildId); // TODO: Precise your own guildID in config.json!
                 slash.RegisterCommands<HeartboardCommands>(Config.GuildId);
                 slash.RegisterCommands<QuoterCommands>(Config.GuildId);
                 slash.RegisterCommands<RoleMenuCommands>(Config.GuildId);
