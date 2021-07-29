@@ -170,5 +170,31 @@ namespace DevExchangeBot.Commands
                     .AddEmbed(builder)
                     .AsEphemeral(true));
         }
+
+        [SlashCommand("setlevelupchannel", "Sets the channel where level-up messages should be displayed.")]
+        public async Task SetLevelUpChannel(InteractionContext ctx,
+            [Option("Channel", "Channel to display the level-up messages in")]
+            DiscordChannel channel,
+            [Option("Enable",
+                "If false, will send the level-up message in the current channel. Defaults to true.")]
+            bool enable = true)
+        {
+            if (channel.Type != ChannelType.Text)
+            {
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder()
+                        .WithContent($"{Program.Config.Emoji.Failure} You can only use a text channel!")
+                        .AsEphemeral(true));
+                return;
+            }
+
+            StorageContext.Model.LevelUpChannelId = channel.Id;
+            StorageContext.Model.EnableLevelUpChannel = enable;
+
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                new DiscordInteractionResponseBuilder()
+                    .WithContent($"{Program.Config.Emoji.Success} Settings successfully updated!")
+                    .AsEphemeral(true));
+        }
     }
 }
