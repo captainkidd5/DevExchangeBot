@@ -7,6 +7,8 @@ namespace DevExchangeBot.Storage
     {
         public Dictionary<ulong, UserModel> Users { get; set; }
         public float ExpMultiplier { get; set; }
+        public bool EnableLevelUpChannel { get; set; }
+        public ulong LevelUpChannelId { get; set; }
 
         public ulong HeartBoardChannel { get; set; }
         public bool HeartBoardEnabled { get; set; }
