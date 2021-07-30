@@ -32,12 +32,34 @@ namespace DevExchangeBot
             Regex.Replace(content, "<:[a-zA-Z]+:[0-9]+>", "0", RegexOptions.IgnoreCase);
             user.Exp += (int)Math.Round(content.Length / 2D * StorageContext.Model.ExpMultiplier, MidpointRounding.ToZero);
 
-            if (user.Exp > user.ExpToNextLevel)
+            while (user.Exp > user.ExpToNextLevel)
             {
                 user.Exp -= user.ExpToNextLevel;
                 user.Level += 1;
 
-                await e.Channel.SendMessageAsync($"{Program.Config.Emoji.Confetti} {e.Author.Mention} advanced to level {user.Level}!");
+                if (StorageContext.Model.LevelUpChannelId == 0 || StorageContext.Model.EnableLevelUpChannel == false)
+                    await e.Channel.SendMessageAsync($"{Program.Config.Emoji.Confetti} {e.Author.Mention} advanced to level {user.Level}!");
+                else
+                {
+                    DiscordChannel channel;
+
+                    try
+                    {
+                        channel = e.Guild.GetChannel(StorageContext.Model.LevelUpChannelId);
+                    }
+                    catch (Exception exception)
+                    {
+                        sender.Logger.LogWarning(exception, "Could not get level-up channel of ID '{ChannelID}'",
+                            StorageContext.Model.LevelUpChannelId);
+                        await e.Channel.SendMessageAsync(
+                            $"{Program.Config.Emoji.Confetti} {e.Author.Mention} advanced to level {user.Level}!");
+
+                        user.LastMessageTime = e.Message.CreationTimestamp.DateTime;
+                        return;
+                    }
+
+                    await channel.SendMessageAsync($"{Program.Config.Emoji.Confetti} {e.Author.Mention} advanced to level {user.Level}!");
+                }
             }
 
             user.LastMessageTime = e.Message.CreationTimestamp.DateTime;
