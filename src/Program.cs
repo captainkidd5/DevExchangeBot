@@ -83,6 +83,8 @@ namespace DevExchangeBot
             // Then connect the bot to Discord's API
             await Client.ConnectAsync();
 
+            PresenceUpdater.Initialize(Client);
+
             await Task.Delay(-1);
         }
 
