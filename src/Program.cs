@@ -94,6 +94,8 @@ namespace DevExchangeBot
 
             await Client.ConnectAsync();
 
+            PresenceUpdater.Initialize(Client);
+
             await Task.Delay(-1);
         }
 
