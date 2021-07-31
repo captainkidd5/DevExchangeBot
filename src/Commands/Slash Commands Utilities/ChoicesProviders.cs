@@ -8,6 +8,9 @@ using DSharpPlus.Entities;
 
 namespace DevExchangeBot.Commands.Slash_Commands_Utilities
 {
+    /// <summary>
+    /// This class and its method are used to provide Discord API the list of the available menus to spawn, edit or even delete.
+    /// </summary>
     public class MenuNamesChoiceProvider
     {
         // ReSharper disable once UnusedMember.Global
@@ -17,6 +20,9 @@ namespace DevExchangeBot.Commands.Slash_Commands_Utilities
         }
     }
 
+    /// <summary>
+    /// This one is used to provide selection types for role menus
+    /// </summary>
     public class SelectionTypeChoiceProvider
     {
         // ReSharper disable once UnusedMember.Global

@@ -3,6 +3,9 @@ using DevExchangeBot.Storage.Models;
 
 namespace DevExchangeBot.Storage
 {
+    /// <summary>
+    /// This class contains data relative to the guild the bot is in, mainly users' data and modules' settings
+    /// </summary>
     public class StorageModel
     {
         public Dictionary<ulong, UserModel> Users { get; set; }

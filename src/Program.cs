@@ -21,9 +21,6 @@ namespace DevExchangeBot
 {
     public static class Program
     {
-        // TODO: The client class shouldn't be public, but there are
-        // compatibility issues with the role menu system if we make
-        // this private. This needs fixing.
         private static DiscordClient Client { get; set; }
         public static ConfigModel Config { get; private set; }
 
@@ -40,14 +37,15 @@ namespace DevExchangeBot
 
         private static async Task MainAsync()
         {
-            // Initialize a new client to establish a connection toe the Discord API.
+            // Initialize a new client to establish a connection to the Discord API.
             Client = new DiscordClient(new DiscordConfiguration
             {
                 Token = Config.Token,
                 TokenType = TokenType.Bot,
-                Intents = DiscordIntents.All // TODO: Enable intents in the bot's application page
+                Intents = DiscordIntents.All
             });
 
+            // Register all of the events
             Client.MessageCreated += ClientEvents.OnMessageCreatedLevelling;
             Client.MessageCreated += ClientEvents.OnMessageCreatedAutoQuoter;
             Client.GuildMemberRemoved += ClientEvents.OnGuildMemberRemoved;
@@ -56,21 +54,7 @@ namespace DevExchangeBot
             Client.ComponentInteractionCreated += ClientEvents.OnComponentInteractionCreatedRoleMenu;
             Client.ComponentInteractionCreated += ClientEvents.OnComponentInteractionCreatedRoleMenuSuppression;
 
-            // var commands = Client.UseCommandsNext(new CommandsNextConfiguration
-            // {
-            //     EnableDms = false,
-            //     EnableMentionPrefix = false,
-            //     StringPrefixes = new [] { Config.Prefix },
-            //     IgnoreExtraArguments = true
-            // });
-
-            //commands.CommandErrored += OnCommandErrored;
-
-            //commands.RegisterCommands<LevellingCommands>();
-            //commands.RegisterCommands<HeartboardCommands>();
-            //commands.RegisterCommands<QuoterCommands>();
-            //commands.RegisterCommands<RoleMenuCommands>();
-
+            // Setup the interactivity
             Client.UseInteractivity(new InteractivityConfiguration
             {
                 Timeout = TimeSpan.FromSeconds(30),
@@ -78,27 +62,36 @@ namespace DevExchangeBot
                 PaginationDeletion = PaginationDeletion.DeleteEmojis
             });
 
+            // Setup the slash commands module
             var slash = Client.UseSlashCommands();
 
             if (Config.GuildId != 0)
             {
-                slash.RegisterCommands<LevellingCommands>(Config.GuildId); // TODO: Precise your own guildID in config.json!
+                // And register our commands if a guild ID is provided
+                slash.RegisterCommands<LevellingCommands>(Config.GuildId);
                 slash.RegisterCommands<HeartboardCommands>(Config.GuildId);
                 slash.RegisterCommands<QuoterCommands>(Config.GuildId);
                 slash.RegisterCommands<RoleMenuCommands>(Config.GuildId);
             }
 
+            // Hook-up an event to see what's wrong if an error happen in a command
             slash.SlashCommandErrored += OnCommandErrored;
 
+            // Initialize our storage
             StorageContext.InitializeStorage();
 
+            // Then connect the bot to Discord's API
             await Client.ConnectAsync();
 
             await Task.Delay(-1);
         }
 
+        /// <summary>
+        /// This method is very useful because it gives details if a command is errored and allow us to respond to the user
+        /// </summary>
         private static async Task OnCommandErrored(SlashCommandsExtension slashCommandsExtension, SlashCommandErrorEventArgs e)
         {
+            // First we log the error to the console
             e.Context.Client.Logger.LogError(new EventId(0, "Error"), e.Exception,
                 "User '{Username}#{Discriminator}' ({UserId}) tried to execute '{Command}' "
                 + "in #{ChannelName} ({ChannelId}) and failed with {ExceptionType}: {ExceptionMessage}",
@@ -106,49 +99,53 @@ namespace DevExchangeBot
 
             DiscordEmbedBuilder embed = null;
 
-                var ex = e.Exception;
-                while (ex is AggregateException)
-                    ex = ex.InnerException;
+            var ex = e.Exception;
+            while (ex is AggregateException)
+                ex = ex.InnerException;
 
-                switch (ex)
+            switch (ex)
+            {
+                // Then we check if the error is not user-related (e.g. wrong arguments, missing permission, etc...)
+                case CommandNotFoundException:
+                    break; // Ignore
+
+                case SlashExecutionChecksFailedException cfe:
                 {
-                    case CommandNotFoundException:
-                        break; // Ignore
-
-                    case SlashExecutionChecksFailedException cfe:
-                    {
-                        if (cfe.FailedChecks.Any(x => x is SlashRequireUserPermissionsAttribute))
-                            embed = new DiscordEmbedBuilder
-                            {
-                                Title = "Permission denied",
-                                Description =
-                                    $"{Config.Emoji.AccessDenied} You lack permissions necessary to run this command.",
-                                Color = new DiscordColor(0xFF0000)
-                            };
-
-                        break;
-                    }
-
-                    case ArgumentException:
-                        await e.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
-                            new DiscordInteractionResponseBuilder()
-                                .WithContent($"{Config.Emoji.Failure} Oops, you used a wrong argument!")
-                                .AsEphemeral(true));
-                        break;
-                    default:
+                    if (cfe.FailedChecks.Any(x => x is SlashRequireUserPermissionsAttribute))
                         embed = new DiscordEmbedBuilder
                         {
-                            Title = "A problem occured while executing the command",
-                            Description = $"{Config.Emoji.CriticalError} {Formatter.InlineCode(e.Context.CommandName)} threw an exception: `{ex?.GetType()}: {ex?.Message}`",
+                            Title = "Permission denied",
+                            Description =
+                                $"{Config.Emoji.AccessDenied} You lack permissions necessary to run this command.",
                             Color = new DiscordColor(0xFF0000)
                         };
-                        break;
+
+                    break;
                 }
 
-                if (embed != null)
+                case ArgumentException:
                     await e.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                         new DiscordInteractionResponseBuilder()
-                            .AddEmbed(embed).AsEphemeral(true));
+                            .WithContent($"{Config.Emoji.Failure} Oops, you used a wrong argument!")
+                            .AsEphemeral(true));
+                    break;
+
+                // if it's none of those, we just provide a default embed with the error mentioned in it
+                default:
+                    embed = new DiscordEmbedBuilder
+                    {
+                        Title = "A problem occured while executing the command",
+                        Description = $"{Config.Emoji.CriticalError} {Formatter.InlineCode(e.Context.CommandName)} threw an exception: `{ex?.GetType()}: {ex?.Message}`",
+                        Color = new DiscordColor(0xFF0000)
+                    };
+                    break;
+            }
+
+            // Finally we send our error message to the user
+            if (embed != null)
+                await e.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder()
+                        .AddEmbed(embed).AsEphemeral(true));
         }
     }
 }

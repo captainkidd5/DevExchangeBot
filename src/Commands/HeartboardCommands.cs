@@ -16,6 +16,7 @@ namespace DevExchangeBot.Commands
         [SlashCommand("setchannel", "Sets the channel for the starboard"), SlashRequireUserPermissions(Permissions.Administrator)]
         public async Task HbSetChannel(InteractionContext ctx, [Option("Channel", "Where will the heartboard messages go.")] DiscordChannel channel)
         {
+            // Check if the given is a text channel, if not create a response to inform the user
             if (channel.Type != ChannelType.Text)
             {
                 await ctx.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
@@ -25,6 +26,7 @@ namespace DevExchangeBot.Commands
                 return;
             }
 
+            // Set the new value in the config
             StorageContext.Model.HeartBoardChannel = channel.Id;
 
             var embed = new DiscordEmbedBuilder
@@ -33,6 +35,7 @@ namespace DevExchangeBot.Commands
                 Description = $"{Program.Config.Emoji.Success} Heartboard channel successfully set to {channel.Mention}!"
             };
 
+            // Build a response (above) and proceed to send it to the user
             await ctx.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                 new DiscordInteractionResponseBuilder().AddEmbed(embed).AsEphemeral(true));
         }
@@ -40,8 +43,10 @@ namespace DevExchangeBot.Commands
         [SlashCommand("toggle", "Toggles on or off the heartboard module"), SlashRequireUserPermissions(Permissions.Administrator)]
         public async Task HbToggle(InteractionContext ctx, [Option("Enabled", "Whether to toggle on or off the module.")] bool enabled)
         {
+            // Set the new value in the config
             StorageContext.Model.HeartBoardEnabled = enabled;
 
+            // Build a response and send it
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder()
                 .AddEmbed(new DiscordEmbedBuilder
                 {

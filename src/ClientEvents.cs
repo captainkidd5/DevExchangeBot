@@ -14,29 +14,38 @@ namespace DevExchangeBot
 {
     public static class ClientEvents
     {
+        /// <summary>
+        /// This method is responsible of handling the logic of the levelling module
+        /// </summary>
         public static async Task OnMessageCreatedLevelling(DiscordClient sender, MessageCreateEventArgs e)
         {
+            // If the user is a bot or the message starts with a prefix, cancel the action
             if (e.Author.IsBot || e.Message.Content.StartsWith(Program.Config.Prefix))
                 return;
 
+            // Try to retrieve the data associated with the user, if fails, create it
             if (!StorageContext.Model.Users.TryGetValue(e.Author.Id, out var user))
             {
                 user = new UserModel(e.Author.Id);
                 StorageContext.Model.AddUser(user);
             }
 
+            // Check if the user has already sent a message in the last minute, if yes, cancel the action
             if (user.LastMessageTime + TimeSpan.FromMinutes(1) > e.Message.CreationTimestamp.DateTime) return;
 
             var content = e.Message.Content;
 
+            // Prevent the emoji strings to count for more than one character and add some EXP depending on the length of the message
             Regex.Replace(content, "<:[a-zA-Z]+:[0-9]+>", "0", RegexOptions.IgnoreCase);
             user.Exp += (int)Math.Round(content.Length / 2D * StorageContext.Model.ExpMultiplier, MidpointRounding.ToZero);
 
+            // Reward the user with new level(s) if he can pass to the next level
             while (user.Exp > user.ExpToNextLevel)
             {
                 user.Exp -= user.ExpToNextLevel;
                 user.Level += 1;
 
+                // The whole if clause below is dedicated to send a message on a level-up
                 if (StorageContext.Model.LevelUpChannelId == 0 || StorageContext.Model.EnableLevelUpChannel == false)
                     await e.Channel.SendMessageAsync($"{Program.Config.Emoji.Confetti} {e.Author.Mention} advanced to level {user.Level}!");
                 else
@@ -62,21 +71,27 @@ namespace DevExchangeBot
                 }
             }
 
+            // Sets the last message time in the user's data as an anti-spam mesure
             user.LastMessageTime = e.Message.CreationTimestamp.DateTime;
         }
 
+        /// <summary>
+        /// This method handles the logic of the auto-quoter module
+        /// </summary>
         public static async Task OnMessageCreatedAutoQuoter(DiscordClient sender, MessageCreateEventArgs e)
         {
+            // Check if the auto-quoter is enabled and if the message sent contains only a link to a Discord message
             if (!StorageContext.Model.AutoQuoterEnabled) return;
 
             var match = Regex.Match(e.Message.Content, "^https://discord.com/channels/([0-9]+)/([0-9]+)/([0-9]+)$");
-
             if (!match.Success) return;
 
+            // Try parsing the numbers in the link as ulongs, if one fails, the action is cancelled
             if (!ulong.TryParse(match.Groups[1].Value, out var guildId) ||
                 !ulong.TryParse(match.Groups[2].Value, out var channelId) ||
                 !ulong.TryParse(match.Groups[3].Value, out var messageId)) return;
 
+            // Try getting the message
             DiscordMessage message;
             try
             {
@@ -88,6 +103,7 @@ namespace DevExchangeBot
                 return;
             }
 
+            // If we got the message, we delete the original message to respond with a formatted quote
             await e.Message.DeleteAsync();
             await e.Channel.SendMessageAsync(new DiscordEmbedBuilder
                 {
@@ -98,21 +114,31 @@ namespace DevExchangeBot
                 .AddField("Quoted by", $"{e.Message.Author.Mention} from [#{message.Channel.Name}]({message.JumpLink})"));
         }
 
+        /// <summary>
+        /// This method deletes a user's data when he leaves the guild in any way (leave, kick, ban, etc...)
+        /// </summary>
         public static Task OnGuildMemberRemoved(DiscordClient sender, GuildMemberRemoveEventArgs guildMemberRemoveEventArgs)
         {
             StorageContext.Model.Users.Remove(guildMemberRemoveEventArgs.Member.Id);
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// This method contains the logic for the starboard
+        /// </summary>
         public static async Task OnMessageReactionAdded(DiscordClient sender, MessageReactionAddEventArgs e)
         {
+            // If not enabled or no channel set, cancel
             if (!StorageContext.Model.HeartBoardEnabled || StorageContext.Model.HeartBoardChannel == 0) return;
 
+            // Parse the emoji(s) specified in the global config
             var emojiList = Program.Config.RawHeartBoardEmojis.Select(configRawHeartBoardEmoji => ulong.TryParse(configRawHeartBoardEmoji, out var emojiId)
                     ? DiscordEmoji.FromGuildEmote(sender, emojiId)
                     : DiscordEmoji.FromName(sender, configRawHeartBoardEmoji))
                 .ToList();
 
+            // Try getting the orignal message, we need this because the event arguments do not provide everything we need
+            // We also warp it in a try-catch because GetMessageAsync is a bit wonky
             DiscordMessage originalMessage;
             try
             {
@@ -124,12 +150,14 @@ namespace DevExchangeBot
                 return;
             }
 
+            // Get all reactions associated with the specified emojis in the config, if there is any we get the total count of them
             var heartReactions = originalMessage.Reactions.Where(r => emojiList.Contains(r.Emoji)).ToList();
 
             if (!heartReactions.Any()) return;
 
             var reacNumber = heartReactions.Sum(discordReaction => discordReaction.Count);
 
+            // Try to get the channel provided by the guild settings
             DiscordChannel channel;
             try
             {
@@ -141,6 +169,7 @@ namespace DevExchangeBot
                 return;
             }
 
+            // Build a nice embed to display the message
             var embed = new DiscordEmbedBuilder
                 {
                     Description = originalMessage.Content,
@@ -158,6 +187,7 @@ namespace DevExchangeBot
 
             StorageContext.Model.HeartboardMessages ??= new Dictionary<ulong, ulong>();
 
+            // Check if the message has already been posted, if yes, update it, if no, create it
             if (StorageContext.Model.HeartboardMessages.TryGetValue(originalMessage.Id, out var starboardMessage))
             {
                 try
@@ -176,9 +206,13 @@ namespace DevExchangeBot
 
             var hbMessage = await channel.SendMessageAsync(embed);
 
+            // Register the new message in the storage
             StorageContext.Model.HeartboardMessages.Add(originalMessage.Id, hbMessage.Id);
         }
 
+        /// <summary>
+        /// This method is identical to <see cref="OnMessageReactionAdded"/>, except it cannot send messages, only update them
+        /// </summary>
         public static async Task OnMessageReactionRemoved(DiscordClient sender, MessageReactionRemoveEventArgs e)
         {
             if (!StorageContext.Model.HeartBoardEnabled || StorageContext.Model.HeartBoardChannel == 0) return;
@@ -247,11 +281,14 @@ namespace DevExchangeBot
 
         public static Task OnComponentInteractionCreatedRoleMenu(DiscordClient sender, ComponentInteractionCreateEventArgs e)
         {
+            // Check if the component we interacted with is a role menu
             var match = Regex.Match(e.Id, "^roleMenu_(.+$)");
             if (!match.Success) return Task.CompletedTask;
 
+            // We'll run everything in a task to avoid deadlocks and failed interactions
             _ = Task.Run(async () =>
             {
+                // Get the menu name and try to retrieve it from the storage
                 var menuName = match.Groups[1].Value;
 
                 if (StorageContext.Model.RoleMenus.All(m => m.Name != menuName))
@@ -262,8 +299,10 @@ namespace DevExchangeBot
 
                 var menu = StorageContext.Model.RoleMenus.First(m => m.Name == menuName);
 
+                // Convert the DiscordUser to a DiscordMember, this will give us access to methods to modify it's roles
                 var member = await e.Guild.GetMemberAsync(e.User.Id);
 
+                // Loop through all of the roles the user has not selected and revoke them
                 foreach (var option in menu.Options.Where(o => !e.Values.Contains(o.RoleId.ToString())))
                 {
                     try
@@ -278,6 +317,7 @@ namespace DevExchangeBot
                     }
                 }
 
+                // Loop through all of the roles the user has selected and grant them
                 foreach (var value in e.Values)
                 {
                     try
@@ -292,6 +332,7 @@ namespace DevExchangeBot
                     }
                 }
 
+                // Finally send a response ton indicate the user his roles have been updated
                 await e.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder().WithContent("Roles updated").AsEphemeral(true));
             });
@@ -300,11 +341,11 @@ namespace DevExchangeBot
 
         public static async Task OnComponentInteractionCreatedRoleMenuSuppression(DiscordClient sender, ComponentInteractionCreateEventArgs e)
         {
+            // Check if the component is a delete button
             var match = Regex.Match(e.Id, "^deleteMenu_(.+$)");
-            if (!match.Success)
-                return;
 
-            if (e.Id == "cancelMenuSuppression")
+            // If not, check if it's a cancel button
+            if (e.Id == "cancelMenuSuppression" && !match.Success)
             {
                 await e.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage,
                     new DiscordInteractionResponseBuilder()
@@ -313,8 +354,13 @@ namespace DevExchangeBot
                 return;
             }
 
+            // If none of them, cancel
+            if (!match.Success) return;
+
+            // Again, run the event in a task to avoid deadlocks
             _ = Task.Run(async () =>
             {
+                // Get the menu if it exists and delete it
                 var menuName = match.Groups[1].Value;
 
                 if (StorageContext.Model.RoleMenus.All(m => m.Name != menuName))
@@ -325,6 +371,7 @@ namespace DevExchangeBot
 
                 StorageContext.Model.RoleMenus.Remove(StorageContext.Model.RoleMenus.First(m => m.Name == menuName));
 
+                // Send a response to indicate a successful deletion
                 await e.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage,
                     new DiscordInteractionResponseBuilder()
                         .WithContent($"{Program.Config.Emoji.Success} Menu successfully deleted!")
