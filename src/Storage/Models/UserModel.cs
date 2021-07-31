@@ -3,6 +3,10 @@ using System;
 
 namespace DevExchangeBot.Storage.Models
 {
+    /// <summary>
+    /// This class contains the data for a single user.
+    /// It's mainly used for levelling for now.
+    /// </summary>
     public class UserModel
     {
         public UserModel(ulong? id = null)

@@ -2,6 +2,9 @@ using System.Collections.Generic;
 
 namespace DevExchangeBot.Storage.Models
 {
+    /// <summary>
+    /// This class represent a role menu itself.
+    /// </summary>
     public class RoleMenuModel
     {
         public string Name { get; set; }
@@ -11,6 +14,10 @@ namespace DevExchangeBot.Storage.Models
         public IList<RoleOption> Options { get; set; }
     }
 
+    /// <summary>
+    /// This class represent an option in a role menu.
+    /// See <see cref="RoleMenuModel"/>.
+    /// </summary>
     public class RoleOption
     {
         public ulong RoleId { get; set; }

@@ -2,6 +2,10 @@ using System.Collections.Generic;
 
 namespace DevExchangeBot.Configuration
 {
+    /// <summary>
+    /// This class represent all the global settings available for the bot and set by the owner.
+    /// It reflect config.json file.
+    /// </summary>
     public class ConfigModel
     {
         public string Token { get; set; }

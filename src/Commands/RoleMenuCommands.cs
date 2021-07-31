@@ -25,6 +25,7 @@ namespace DevExchangeBot.Commands
             [Option("Name", "Name of the menu to create")] string menuName,
             [ChoiceProvider(typeof(SelectionTypeChoiceProvider)), Option("Selection", "Selection type")] string stringAllowMultipleSelection = "True")
         {
+            // Check if the menu exists
             if (StorageContext.Model.RoleMenus.Any(m => m.Name == menuName))
             {
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
@@ -34,6 +35,7 @@ namespace DevExchangeBot.Commands
                 return;
             }
 
+            // Check if we're not over the limit
             if (StorageContext.Model.RoleMenus.Count == 25)
             {
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
@@ -43,12 +45,15 @@ namespace DevExchangeBot.Commands
                 return;
             }
 
+            // Parse our string from the choice provider to a bool
             var allowMultipleSelection = bool.Parse(stringAllowMultipleSelection);
 
+            // Created a response with deferred update
             await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource,
                 new DiscordInteractionResponseBuilder()
                     .AsEphemeral(true));
 
+            // Add the new entry to the storage
             StorageContext.Model.RoleMenus.Add(new RoleMenuModel
             {
                 Options = new List<RoleOption>(),
@@ -56,8 +61,11 @@ namespace DevExchangeBot.Commands
                 Name = menuName
             });
 
+            // Refresh the commands for our new menu to appear in the choice provider
+            // This can take a considerable amount of time, this is why we made a deferred response
             await ctx.SlashCommandsExtension.RefreshCommands();
 
+            // Respond with a success message
             await ctx.EditResponseAsync(new DiscordWebhookBuilder()
                 .WithContent($"{Program.Config.Emoji.Success} Entry added, start adding roles by using the `addrole` command!"));
         }
@@ -67,6 +75,7 @@ namespace DevExchangeBot.Commands
         public async Task Suppress(InteractionContext ctx,
             [ChoiceProvider(typeof(MenuNamesChoiceProvider)), Option("Menu", "Menu to delete")] string menuName)
         {
+            // Check if the menu exists
             if (StorageContext.Model.RoleMenus.All(m => m.Name != menuName))
             {
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
@@ -76,6 +85,7 @@ namespace DevExchangeBot.Commands
                 return;
             }
 
+            // Make a fancy message with buttons and let the event handle the deletion
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,new DiscordInteractionResponseBuilder()
                 .AddComponents(
                     new DiscordButtonComponent(ButtonStyle.Danger, $"deleteMenu_{menuName}", "Confirm"),
@@ -91,6 +101,7 @@ namespace DevExchangeBot.Commands
             [ChoiceProvider(typeof(MenuNamesChoiceProvider)), Option("Menu", "Menu to delete")] string menuName,
             [ChoiceProvider(typeof(SelectionTypeChoiceProvider)), Option("Selection", "Selection type")] string stringMultipleSelection)
         {
+            // Check if the menu exists
             if (StorageContext.Model.RoleMenus.All(m => m.Name != menuName))
             {
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
@@ -100,12 +111,15 @@ namespace DevExchangeBot.Commands
                 return;
             }
 
+            // Parse our string from the choice provider to a bool
             var multipleSelection = bool.Parse(stringMultipleSelection);
 
+            // Get the menu from the storage and set the new value
             var menu = StorageContext.Model.RoleMenus.First(m => m.Name == menuName);
 
             menu.AllowMultipleSelection = multipleSelection;
 
+            // Send a response
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                 new DiscordInteractionResponseBuilder()
                     .WithContent($"{Program.Config.Emoji.Success} Selection type successfully changed!")

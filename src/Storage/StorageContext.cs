@@ -6,6 +6,9 @@ using Newtonsoft.Json;
 
 namespace DevExchangeBot.Storage
 {
+    /// <summary>
+    /// This class handles all the logic for the storage, mainly auto-saving and retrieving the data.
+    /// </summary>
     public static class StorageContext
     {
         private const string FilePath = "storage.json";
@@ -36,9 +39,15 @@ namespace DevExchangeBot.Storage
                 fs.Dispose();
             }
 
+            // Load the model from the file
             Model = JsonConvert.DeserializeObject<StorageModel>(File.ReadAllText(FilePath)) ?? new StorageModel();
         }
 
+        /// <summary>
+        /// Method used to automatically save the data
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="eventArgs"></param>
         private static void SaveData(object sender, EventArgs eventArgs)
         {
             var json = JsonConvert.SerializeObject(Model, Formatting.Indented);
