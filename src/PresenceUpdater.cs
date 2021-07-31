@@ -12,6 +12,10 @@ namespace DevExchangeBot
         private static Timer _timer;
         private static DateTime _startupTime;
 
+        /// <summary>
+        /// Initialize the presence updater by assigning every field a value and updating a first time the presence
+        /// </summary>
+        /// <param name="client">Connected <see cref="DiscordClient"/>. Use after <see cref="DiscordClient.ConnectAsync"/></param>
         public static async void Initialize(DiscordClient client)
         {
             _client = client;
@@ -36,6 +40,9 @@ namespace DevExchangeBot
                 UserStatus.Online, _startupTime);
         }
 
+        /// <summary>
+        /// This method updates the presence each time the timer reaches it's interval
+        /// </summary>
         private static async void TimerOnElapsed(object sender, ElapsedEventArgs e)
         {
             var guild = await _client.GetGuildAsync(Program.Config.GuildId, true);
