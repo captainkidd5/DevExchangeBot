@@ -42,7 +42,8 @@ namespace DevExchangeBot
             {
                 Token = Config.Token,
                 TokenType = TokenType.Bot,
-                Intents = DiscordIntents.All
+                Intents = DiscordIntents.All,
+                LoggerFactory = Logging.SetUpAndGetLoggerFactory()
             });
 
             // Register all of the events
