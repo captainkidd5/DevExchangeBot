@@ -15,7 +15,6 @@ namespace DevExchangeBot.Configuration
         public string Failure { get; set; }
         public string CriticalError { get; set; }
         public string AccessDenied { get; set; }
-        public string Loading { get; set; }
         public string Warning { get; set; }
     }
 }
