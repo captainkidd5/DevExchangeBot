@@ -7,6 +7,9 @@ using Serilog.Sinks.SystemConsole.Themes;
 
 namespace DevExchangeBot.Configuration
 {
+    /// <summary>
+    /// This class has only one method used to setup the custom log factory
+    /// </summary>
     public static class Logging
     {
         public static ILoggerFactory SetUpAndGetLoggerFactory()
@@ -24,6 +27,9 @@ namespace DevExchangeBot.Configuration
         }
     }
 
+    /// <summary>
+    /// This class is used to set a custom them to the console and log messages
+    /// </summary>
     public sealed class LoggingTheme : ConsoleTheme
     {
         public override bool CanBuffer => false;
