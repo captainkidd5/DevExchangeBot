@@ -14,7 +14,7 @@ namespace DevExchangeBot.Configuration
     {
         public static ILoggerFactory SetUpAndGetLoggerFactory()
         {
-            const string logTemplate = "[{Timestamp:HH:mm:ss}] [{Level:u3}] {Message:lj} {Exception:j}{NewLine}";
+            const string logTemplate = "[{Timestamp:HH:mm:ss} | {Level:u3}] {Message:lj} {Exception:j}{NewLine}";
 
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
