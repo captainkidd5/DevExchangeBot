@@ -20,7 +20,7 @@ namespace DevExchangeBot
         public static async Task OnMessageCreatedLevelling(DiscordClient sender, MessageCreateEventArgs e)
         {
             // If the user is a bot or the message starts with a prefix, cancel the action
-            if (e.Author.IsBot || e.Message.Content.StartsWith(Program.Config.Prefix))
+            if (e.Author.IsBot)
                 return;
 
             // Try to retrieve the data associated with the user, if fails, create it

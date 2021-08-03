@@ -9,7 +9,6 @@ namespace DevExchangeBot.Configuration
     public class ConfigModel
     {
         public string Token { get; set; }
-        public string Prefix { get; set; }
         public string Color { get; set; }
         public ulong GuildId { get; set; }
 
@@ -17,7 +16,5 @@ namespace DevExchangeBot.Configuration
 
         public IList<string> RawHeartBoardEmojis { get; set; }
         public int HeartboardRequirement { get; set; }
-
-        public RoleMenuConfigModel RoleMenu { get; set; }
     }
 }
