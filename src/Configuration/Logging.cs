@@ -17,7 +17,11 @@ namespace DevExchangeBot.Configuration
             const string logTemplate = "[{Timestamp:HH:mm:ss} | {Level:u3}] {Message:lj} {Exception:j}{NewLine}";
 
             Log.Logger = new LoggerConfiguration()
+#if DEBUG
                 .MinimumLevel.Debug()
+#elif RELEASE
+                .MinimumLevel.Information()
+#endif
                 .WriteTo.Console(outputTemplate: logTemplate, theme: new LoggingTheme())
                 .WriteTo.File("logs/logs-.log", outputTemplate: logTemplate,
                     rollingInterval: RollingInterval.Day, restrictedToMinimumLevel: LogEventLevel.Information)
