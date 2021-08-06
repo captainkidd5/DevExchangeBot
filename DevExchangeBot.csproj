@@ -5,6 +5,11 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="DSharpPlus" Version="4.1.0-nightly-00930" />
     <PackageReference Include="DSharpPlus.CommandsNext" Version="4.1.0-nightly-00930" />
@@ -18,9 +23,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="config.json">
+    <EmbeddedResource Include="config.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
