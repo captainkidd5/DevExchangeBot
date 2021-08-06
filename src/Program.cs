@@ -76,7 +76,8 @@ namespace DevExchangeBot
             }
 
             // Hook-up an event to see what's wrong if an error happen in a command
-            slash.SlashCommandErrored += OnCommandErrored;
+            slash.SlashCommandErrored += OnSlashCommandErrored;
+            slash.SlashCommandExecuted += OnSlashCommandExecuted;
 
             // Initialize our storage
             StorageContext.InitializeStorage();
@@ -89,10 +90,17 @@ namespace DevExchangeBot
             await Task.Delay(-1);
         }
 
+        private static Task OnSlashCommandExecuted(SlashCommandsExtension sender, SlashCommandExecutedEventArgs e)
+        {
+            e.Context.Client.Logger.LogInformation(new EventId(1, "CmdExe"), "User {Username}#{Tag} ({Id}) executed command '{CommandName}' in channel #{Channel} ({ChannelId})",
+                e.Context.User.Username, e.Context.User.Discriminator, e.Context.User.Id, e.Context.CommandName, e.Context.Channel.Name, e.Context.Channel.Id);
+            return Task.CompletedTask;
+        }
+
         /// <summary>
         /// This method is very useful because it gives details if a command is errored and allow us to respond to the user
         /// </summary>
-        private static async Task OnCommandErrored(SlashCommandsExtension slashCommandsExtension, SlashCommandErrorEventArgs e)
+        private static async Task OnSlashCommandErrored(SlashCommandsExtension slashCommandsExtension, SlashCommandErrorEventArgs e)
         {
             // First we log the error to the console
             e.Context.Client.Logger.LogError(new EventId(0, "Error"), e.Exception,
