@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 
 namespace DevExchangeBot.Configuration
 {
@@ -19,5 +22,12 @@ namespace DevExchangeBot.Configuration
         public int HeartboardRequirement { get; set; }
 
         public RoleMenuConfigModel RoleMenu { get; set; }
+
+        public static string GetEmbedConfiguration()
+        {
+            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("DevExchangeBot.config.json");
+            using var streamReader = new StreamReader(stream ?? throw new InvalidOperationException("Embed configuration could not be found!"));
+            return streamReader.ReadToEnd();
+        }
     }
 }
