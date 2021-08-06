@@ -59,8 +59,8 @@ Replace the `<RID>` section with [one of these RIDs](https://docs.microsoft.com/
 For Linux on x64 you'd use `linux-x64` and for Windows on x64 you'd use `win-x64`.
 
 ## Credits
-- [JustAeris](https://github.com/JustAeris) - Development of the storage system, level system, heart board and quoting system;
-- [CoolGabrijel](https://github.com/CoolGabrijel) - Development of the role menu feature;
+- [JustAeris](https://github.com/JustAeris) - Development and maintenance of most of the bot as a whole;
+- [CoolGabrijel](https://github.com/CoolGabrijel) - Development of the initial role menu feature;
 - rafe#4854 - Design and rendering of the Alt + F4 background of the bot's avatar.
 
 ## License
