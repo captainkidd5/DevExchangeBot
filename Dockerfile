@@ -4,6 +4,7 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src
 COPY ["DevExchangeBot.csproj", "./"]
+RUN dotnet nuget add source https://nuget.emzi0767.com/api/v3/index.json
 RUN dotnet restore "DevExchangeBot.csproj"
 COPY . .
 WORKDIR "/src/"
