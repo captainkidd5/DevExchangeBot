@@ -1,9 +1,8 @@
-﻿
-namespace DevExchangeBot.Configuration
+﻿namespace DevExchangeBot.Configuration
 {
     /// <summary>
-    /// This class contains all the custom emoji strings for the bot.
-    /// It's part of <see cref="ConfigModel"/>
+    ///     This class contains all the custom emoji strings for the bot.
+    ///     It's part of <see cref="ConfigModel" />
     /// </summary>
     public class EmojiConfigModel
     {

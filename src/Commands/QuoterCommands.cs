@@ -7,6 +7,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using Microsoft.Extensions.Logging;
+
 // ReSharper disable UnusedMember.Global
 
 namespace DevExchangeBot.Commands
@@ -16,7 +17,8 @@ namespace DevExchangeBot.Commands
     public class QuoterCommands : SlashCommandModule
     {
         [SlashCommand("quote", "Quotes a message.")]
-        public async Task Quote(InteractionContext ctx, [Option("Link", "Link to the message, only works in the current server.")] string link)
+        public async Task Quote(InteractionContext ctx,
+            [Option("Link", "Link to the message, only works in the current server.")] string link)
         {
             // Try matching a discord message link
             var match = Regex.Match(link, "^https://discord.com/channels/([0-9]+)/([0-9]+)/([0-9]+)$");
@@ -26,13 +28,15 @@ namespace DevExchangeBot.Commands
             // Try parsing the numbers as ulongs
             if (!ulong.TryParse(match.Groups[1].Value, out var guildId) ||
                 !ulong.TryParse(match.Groups[2].Value, out var channelId) ||
-                !ulong.TryParse(match.Groups[3].Value, out var messageId)) return; // TODO: Create a response for this case
+                !ulong.TryParse(match.Groups[3].Value, out var messageId))
+                return; // TODO: Create a response for this case
 
             DiscordMessage message;
             try
             {
                 // Try getting the message
-                message = await (await ctx.Client.GetGuildAsync(guildId)).GetChannel(channelId).GetMessageAsync(messageId);
+                message = await (await ctx.Client.GetGuildAsync(guildId)).GetChannel(channelId)
+                    .GetMessageAsync(messageId);
             }
             catch (Exception exception)
             {
@@ -45,7 +49,8 @@ namespace DevExchangeBot.Commands
                     Color = new DiscordColor(Program.Config.Color),
                     Description = message.Content
                 }
-                .WithAuthor($"{message.Author.Username}#{message.Author.Discriminator}", iconUrl:message.Author.AvatarUrl)
+                .WithAuthor($"{message.Author.Username}#{message.Author.Discriminator}",
+                    iconUrl: message.Author.AvatarUrl)
                 .AddField("Quoted by", $"{ctx.Member.Mention} from [#{message.Channel.Name}]({message.JumpLink})");
 
             // Build the quote (above) and send it
@@ -53,8 +58,10 @@ namespace DevExchangeBot.Commands
                 new DiscordInteractionResponseBuilder().AddEmbed(builder));
         }
 
-        [SlashCommand("toggleautoquote", "Toggles on or off the auto-quoter"), SlashRequireUserPermissions(Permissions.Administrator)]
-        public async Task ToggleAutoQuote(InteractionContext ctx, [Option("Enabled", "Whether to enable the module")] bool enable)
+        [SlashCommand("toggleautoquote", "Toggles on or off the auto-quoter")]
+        [SlashRequireUserPermissions(Permissions.Administrator)]
+        public async Task ToggleAutoQuote(InteractionContext ctx,
+            [Option("Enabled", "Whether to enable the module")] bool enable)
         {
             // Store the new value
             StorageContext.Model.AutoQuoterEnabled = enable;
@@ -62,7 +69,8 @@ namespace DevExchangeBot.Commands
             var builder = new DiscordEmbedBuilder
             {
                 Color = new DiscordColor(Program.Config.Color),
-                Description = $"{Program.Config.Emoji.Success} Auto-quoter toggled to `{StorageContext.Model.AutoQuoterEnabled}`!"
+                Description =
+                    $"{Program.Config.Emoji.Success} Auto-quoter toggled to `{StorageContext.Model.AutoQuoterEnabled}`!"
             };
 
             // Build the quote (above) and send it

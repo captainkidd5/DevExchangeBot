@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 namespace DevExchangeBot.Storage
 {
     /// <summary>
-    /// This class handles all the logic for the storage, mainly auto-saving and retrieving the data.
+    ///     This class handles all the logic for the storage, mainly auto-saving and retrieving the data.
     /// </summary>
     public static class StorageContext
     {
@@ -28,7 +28,7 @@ namespace DevExchangeBot.Storage
             {
                 AutoReset = true,
                 Enabled = true,
-                Interval = 30_000,
+                Interval = 30_000
             };
 
             SaveTimer.Elapsed += SaveData;
@@ -44,7 +44,7 @@ namespace DevExchangeBot.Storage
         }
 
         /// <summary>
-        /// Method used to automatically save the data
+        ///     Method used to automatically save the data
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="eventArgs"></param>

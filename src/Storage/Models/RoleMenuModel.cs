@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace DevExchangeBot.Storage.Models
 {
     /// <summary>
-    /// This class represent a role menu itself.
+    ///     This class represent a role menu itself.
     /// </summary>
     public class RoleMenuModel
     {
@@ -15,8 +15,8 @@ namespace DevExchangeBot.Storage.Models
     }
 
     /// <summary>
-    /// This class represent an option in a role menu.
-    /// See <see cref="RoleMenuModel"/>.
+    ///     This class represent an option in a role menu.
+    ///     See <see cref="RoleMenuModel" />.
     /// </summary>
     public class RoleOption
     {

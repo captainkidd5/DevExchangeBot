@@ -29,7 +29,8 @@ namespace DevExchangeBot
         {
             // Assign the config to either the config.json file or the embedded version
             Config = JsonConvert.DeserializeObject<ConfigModel>(File.Exists("config.json")
-                ? File.ReadAllText("config.json") : ConfigModel.GetEmbedConfiguration());
+                ? File.ReadAllText("config.json")
+                : ConfigModel.GetEmbedConfiguration());
 
             MainAsync().GetAwaiter().GetResult();
         }
@@ -95,21 +96,26 @@ namespace DevExchangeBot
 
         private static Task OnSlashCommandExecuted(SlashCommandsExtension sender, SlashCommandExecutedEventArgs e)
         {
-            e.Context.Client.Logger.LogInformation(new EventId(1, "CmdExe"), "User {Username}#{Tag} ({Id}) executed command '{CommandName}' in channel #{Channel} ({ChannelId})",
-                e.Context.User.Username, e.Context.User.Discriminator, e.Context.User.Id, e.Context.CommandName, e.Context.Channel.Name, e.Context.Channel.Id);
+            e.Context.Client.Logger.LogInformation(new EventId(1, "CmdExe"),
+                "User {Username}#{Tag} ({Id}) executed command '{CommandName}' in channel #{Channel} ({ChannelId})",
+                e.Context.User.Username, e.Context.User.Discriminator, e.Context.User.Id, e.Context.CommandName,
+                e.Context.Channel.Name, e.Context.Channel.Id);
             return Task.CompletedTask;
         }
 
         /// <summary>
-        /// This method is very useful because it gives details if a command is errored and allow us to respond to the user
+        ///     This method is very useful because it gives details if a command is errored and allow us to respond to the user
         /// </summary>
-        private static async Task OnSlashCommandErrored(SlashCommandsExtension slashCommandsExtension, SlashCommandErrorEventArgs e)
+        private static async Task OnSlashCommandErrored(SlashCommandsExtension slashCommandsExtension,
+            SlashCommandErrorEventArgs e)
         {
             // First we log the error to the console
             e.Context.Client.Logger.LogError(new EventId(0, "Error"), e.Exception,
                 "User '{Username}#{Discriminator}' ({UserId}) tried to execute '{Command}' "
                 + "in #{ChannelName} ({ChannelId}) and failed with {ExceptionType}: {ExceptionMessage}",
-                e.Context.User.Username, e.Context.User.Discriminator, e.Context.User.Id, e.Context.CommandName ?? "<unknown command>", e.Context.Channel.Name, e.Context.Channel.Id, e.Exception.GetType(), e.Exception.Message);
+                e.Context.User.Username, e.Context.User.Discriminator, e.Context.User.Id,
+                e.Context.CommandName ?? "<unknown command>", e.Context.Channel.Name, e.Context.Channel.Id,
+                e.Exception.GetType(), e.Exception.Message);
 
             DiscordEmbedBuilder embed = null;
 
@@ -149,7 +155,8 @@ namespace DevExchangeBot
                     embed = new DiscordEmbedBuilder
                     {
                         Title = "A problem occured while executing the command",
-                        Description = $"{Config.Emoji.CriticalError} {Formatter.InlineCode(e.Context.CommandName)} threw an exception: `{ex?.GetType()}: {ex?.Message}`",
+                        Description =
+                            $"{Config.Emoji.CriticalError} {Formatter.InlineCode(e.Context.CommandName)} threw an exception: `{ex?.GetType()}: {ex?.Message}`",
                         Color = new DiscordColor(0xFF0000)
                     };
                     break;

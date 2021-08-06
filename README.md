@@ -1,36 +1,38 @@
 # Dev Exchange Bot
-Welcome to the Dev Exchange Bot project! The goal of this project is to provide a
-community-made Discord bot to the Dev Exchange Discord server.
+
+Welcome to the Dev Exchange Bot project! The goal of this project is to provide a community-made Discord bot to the Dev
+Exchange Discord server.
 
 To get you up to speed with the project, please read the rest of the README below!
 
 ## Getting Started
-First thing first, create a new Discord application and copy its token over. After
-cloning the project, copy the `config.example.json` file in the root of the project
-and name it `config.json`.
 
-Paste the bot token of the newly created Discord application in the `Token` field
-of the configuration file. Take the bot for a test drive by compiling and running
-the program using your favorite IDE of text editor.
+First thing first, create a new Discord application and copy its token over. After cloning the project, copy
+the `config.example.json` file in the root of the project and name it `config.json`.
 
-Now, open up a terminal and run the following commands to pull in the latest
-DSharpPlus NuGet sources and restore the project's dependencies:
+Paste the bot token of the newly created Discord application in the `Token` field of the configuration file. Take the
+bot for a test drive by compiling and running the program using your favorite IDE of text editor.
+
+Now, open up a terminal and run the following commands to pull in the latest DSharpPlus NuGet sources and restore the
+project's dependencies:
+
 ```
 dotnet nuget add source https://nuget.emzi0767.com/api/v3/index.json
 dotnet restore
 ```
-Don't forget to enable all intents on the Discord configuration page and add
-the bot to a server to see it in action!
+
+Don't forget to enable all intents on the Discord configuration page and add the bot to a server to see it in action!
 
 ## Roadmap
-Most initial features have been added at this moment. But if you want to add something
-new or you want to introduce a bug fix, feel free to take a fork of the repository
-and open an issue on what you would like to change. A maintainer will then have a look
-at your change and test it out!
+
+Most initial features have been added at this moment. But if you want to add something new or you want to introduce a
+bug fix, feel free to take a fork of the repository and open an issue on what you would like to change. A maintainer
+will then have a look at your change and test it out!
 
 ## Guidelines
-Contributions are always welcome! Although there are a few guidelines contributors
-should follow up with. These guidelines will mostly cover code style.
+
+Contributions are always welcome! Although there are a few guidelines contributors should follow up with. These
+guidelines will mostly cover code style.
 
 - Pull requests should be done based on the `develop` branch;
 - It is recommended to work on a separate branch on your own fork of the project, e.g. `patch-1`, `patch-2`, etc.
@@ -46,7 +48,9 @@ should follow up with. These guidelines will mostly cover code style.
 - New features can be suggested through the issues section of this repository.
 
 ## Publishing
+
 The right command to publish the application through the `dotnet` command-line application:
+
 ```sh
 dotnet publish DevExchangeBot.sln \
     --framework net5.0 \
@@ -55,14 +59,17 @@ dotnet publish DevExchangeBot.sln \
     -p:PublishSingleFile=true \
     --self-contained false
 ```
-Replace the `<RID>` section with [one of these RIDs](https://docs.microsoft.com/en-us/dotnet/core/rid-catalog).
-For Linux on x64 you'd use `linux-x64` and for Windows on x64 you'd use `win-x64`.
+
+Replace the `<RID>` section with [one of these RIDs](https://docs.microsoft.com/en-us/dotnet/core/rid-catalog). For
+Linux on x64 you'd use `linux-x64` and for Windows on x64 you'd use `win-x64`.
 
 ## Credits
+
 - [JustAeris](https://github.com/JustAeris) - Development and maintenance of most of the bot as a whole;
 - [CoolGabrijel](https://github.com/CoolGabrijel) - Development of the initial role menu feature;
 - rafe#4854 - Design and rendering of the Alt + F4 background of the bot's avatar.
 
 ## License
-Although the bot was specifically made for and by the Dev Exchange community, the
-source code is licensed under the MIT license.
+
+Although the bot was specifically made for and by the Dev Exchange community, the source code is licensed under the MIT
+license.

@@ -4,10 +4,19 @@ using DevExchangeBot.Storage.Models;
 namespace DevExchangeBot.Storage
 {
     /// <summary>
-    /// This class contains data relative to the guild the bot is in, mainly users' data and modules' settings
+    ///     This class contains data relative to the guild the bot is in, mainly users' data and modules' settings
     /// </summary>
     public class StorageModel
     {
+        public StorageModel()
+        {
+            Users = new Dictionary<ulong, UserModel>();
+            ExpMultiplier = 1;
+
+            HeartboardMessages = new Dictionary<ulong, ulong>();
+            RoleMenus = new List<RoleMenuModel>();
+        }
+
         public Dictionary<ulong, UserModel> Users { get; set; }
         public float ExpMultiplier { get; set; }
         public bool EnableLevelUpChannel { get; set; }
@@ -20,15 +29,6 @@ namespace DevExchangeBot.Storage
         public bool AutoQuoterEnabled { get; set; }
 
         public IList<RoleMenuModel> RoleMenus { get; set; }
-
-        public StorageModel()
-        {
-            Users = new Dictionary<ulong, UserModel>();
-            ExpMultiplier = 1;
-
-            HeartboardMessages = new Dictionary<ulong, ulong>();
-            RoleMenus = new List<RoleMenuModel>();
-        }
 
         public void AddUser(UserModel user)
         {
