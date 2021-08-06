@@ -45,10 +45,22 @@ should follow up with. These guidelines will mostly cover code style.
 - When placing a pull request or issue, always try to provide as much detail as possible;
 - New features can be suggested through the issues section of this repository.
 
-## Credits
+## Publishing
+The right command to publish the application through the `dotnet` command-line application:
+```sh
+dotnet publish DevExchangeBot.sln \
+    --framework net5.0 \
+    --configuration Release \
+    --runtime <RID> \
+    -p:PublishSingleFile=true \
+    --self-contained false
+```
+Replace the `<RID>` section with [one of these RIDs](https://docs.microsoft.com/en-us/dotnet/core/rid-catalog).
+For Linux on x64 you'd use `linux-x64` and for Windows on x64 you'd use `win-x64`.
 
-- [JustAeris](https://github.com/JustAeris) - Development of the storage system, level system, heart board and quoting system;
-- [CoolGabrijel](https://github.com/CoolGabrijel) - Development of the role menu feature;
+## Credits
+- [JustAeris](https://github.com/JustAeris) - Development and maintenance of most of the bot as a whole;
+- [CoolGabrijel](https://github.com/CoolGabrijel) - Development of the initial role menu feature;
 - rafe#4854 - Design and rendering of the Alt + F4 background of the bot's avatar.
 
 ## License

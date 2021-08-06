@@ -16,6 +16,7 @@ using DSharpPlus.SlashCommands.Attributes;
 using DSharpPlus.SlashCommands.EventArgs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace DevExchangeBot
 {
@@ -26,12 +27,10 @@ namespace DevExchangeBot
 
         private static void Main()
         {
-            // Ensure the config.json file is copied to the output directory.
-            if (!File.Exists("config.json"))
-                throw new FileNotFoundException("Configuration file could not be found.", "config.json");
+            // Assign the config to either the config.json file or the embedded version
+            Config = JsonConvert.DeserializeObject<ConfigModel>(File.Exists("config.json")
+                ? File.ReadAllText("config.json") : ConfigModel.GetEmbedConfiguration());
 
-            // Parse the content of the configuration file and fire up the MainAsync method.
-            Config = JsonConvert.DeserializeObject<ConfigModel>(File.ReadAllText("config.json"));
             MainAsync().GetAwaiter().GetResult();
         }
 
@@ -42,8 +41,13 @@ namespace DevExchangeBot
             {
                 Token = Config.Token,
                 TokenType = TokenType.Bot,
-                Intents = DiscordIntents.All
+                Intents = DiscordIntents.All,
+                LoggerFactory = Logging.SetUpAndGetLoggerFactory()
             });
+
+            // Warn if we're using the embedded configuration
+            if (!File.Exists("config.json"))
+                Log.Warning("Configuration file not found, using embedded configuration!");
 
             // Register all of the events
             Client.MessageCreated += ClientEvents.OnMessageCreatedLevelling;
@@ -75,7 +79,8 @@ namespace DevExchangeBot
             }
 
             // Hook-up an event to see what's wrong if an error happen in a command
-            slash.SlashCommandErrored += OnCommandErrored;
+            slash.SlashCommandErrored += OnSlashCommandErrored;
+            slash.SlashCommandExecuted += OnSlashCommandExecuted;
 
             // Initialize our storage
             StorageContext.InitializeStorage();
@@ -88,10 +93,17 @@ namespace DevExchangeBot
             await Task.Delay(-1);
         }
 
+        private static Task OnSlashCommandExecuted(SlashCommandsExtension sender, SlashCommandExecutedEventArgs e)
+        {
+            e.Context.Client.Logger.LogInformation(new EventId(1, "CmdExe"), "User {Username}#{Tag} ({Id}) executed command '{CommandName}' in channel #{Channel} ({ChannelId})",
+                e.Context.User.Username, e.Context.User.Discriminator, e.Context.User.Id, e.Context.CommandName, e.Context.Channel.Name, e.Context.Channel.Id);
+            return Task.CompletedTask;
+        }
+
         /// <summary>
         /// This method is very useful because it gives details if a command is errored and allow us to respond to the user
         /// </summary>
-        private static async Task OnCommandErrored(SlashCommandsExtension slashCommandsExtension, SlashCommandErrorEventArgs e)
+        private static async Task OnSlashCommandErrored(SlashCommandsExtension slashCommandsExtension, SlashCommandErrorEventArgs e)
         {
             // First we log the error to the console
             e.Context.Client.Logger.LogError(new EventId(0, "Error"), e.Exception,
