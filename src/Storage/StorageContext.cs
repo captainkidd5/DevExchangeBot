@@ -13,7 +13,7 @@ namespace DevExchangeBot.Storage
     {
         private const string FilePath = "storage.json";
 
-        public static StorageModel Model { get; set; }
+        public static StorageModel Model { get; private set; }
         private static Timer SaveTimer { get; set; }
 
         public static void InitializeStorage()

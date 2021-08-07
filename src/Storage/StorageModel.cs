@@ -17,7 +17,7 @@ namespace DevExchangeBot.Storage
             RoleMenus = new List<RoleMenuModel>();
         }
 
-        public Dictionary<ulong, UserModel> Users { get; set; }
+        public Dictionary<ulong, UserModel> Users { get; }
         public float ExpMultiplier { get; set; }
         public bool EnableLevelUpChannel { get; set; }
         public ulong LevelUpChannelId { get; set; }
@@ -28,7 +28,7 @@ namespace DevExchangeBot.Storage
 
         public bool AutoQuoterEnabled { get; set; }
 
-        public IList<RoleMenuModel> RoleMenus { get; set; }
+        public IList<RoleMenuModel> RoleMenus { get; }
 
         public void AddUser(UserModel user)
         {

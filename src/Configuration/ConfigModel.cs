@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
+// ReSharper disable UnusedAutoPropertyAccessor.Global
+
 namespace DevExchangeBot.Configuration
 {
     /// <summary>
@@ -17,6 +19,7 @@ namespace DevExchangeBot.Configuration
 
         public EmojiConfigModel Emoji { get; set; }
 
+        // ReSharper disable once CollectionNeverUpdated.Global
         public IList<string> RawHeartBoardEmojis { get; set; }
         public int HeartboardRequirement { get; set; }
 

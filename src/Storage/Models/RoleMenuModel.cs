@@ -7,11 +7,11 @@ namespace DevExchangeBot.Storage.Models
     /// </summary>
     public class RoleMenuModel
     {
-        public string Name { get; set; }
+        public string Name { get; init; }
 
         public bool AllowMultipleSelection { get; set; }
 
-        public IList<RoleOption> Options { get; set; }
+        public IList<RoleOption> Options { get; init; }
     }
 
     /// <summary>
@@ -20,8 +20,8 @@ namespace DevExchangeBot.Storage.Models
     /// </summary>
     public class RoleOption
     {
-        public ulong RoleId { get; set; }
-        public string Description { get; set; }
-        public string Emoji { get; set; }
+        public ulong RoleId { get; init; }
+        public string Description { get; init; }
+        public string Emoji { get; init; }
     }
 }
