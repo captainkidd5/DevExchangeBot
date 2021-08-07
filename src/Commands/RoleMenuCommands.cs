@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using DevExchangeBot.Commands.Slash_Commands_Utilities;
-using DSharpPlus;
-using DSharpPlus.Entities;
 using DevExchangeBot.Storage;
 using DevExchangeBot.Storage.Models;
+using DSharpPlus;
+using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
-using Microsoft.Extensions.Logging;
 using DSharpPlus.SlashCommands.Attributes;
+using Microsoft.Extensions.Logging;
 
 // ReSharper disable UnusedMember.Global
 
@@ -20,10 +20,13 @@ namespace DevExchangeBot.Commands
     // ReSharper disable once ClassNeverInstantiated.Global
     public class RoleMenuCommands : SlashCommandModule
     {
-        [SlashCommand("create", "Creates an entry for a menu"), SlashRequireUserPermissions(Permissions.Administrator)]
+        [SlashCommand("create", "Creates an entry for a menu")]
+        [SlashRequireUserPermissions(Permissions.Administrator)]
         public async Task Create(InteractionContext ctx,
-            [Option("Name", "Name of the menu to create")] string menuName,
-            [ChoiceProvider(typeof(SelectionTypeChoiceProvider)), Option("Selection", "Selection type")] string stringAllowMultipleSelection = "True")
+            [Option("Name", "Name of the menu to create")]
+            string menuName,
+            [ChoiceProvider(typeof(SelectionTypeChoiceProvider))] [Option("Selection", "Selection type")]
+            string stringAllowMultipleSelection = "True")
         {
             // Check if the menu exists
             if (StorageContext.Model.RoleMenus.Any(m => m.Name == menuName))
@@ -40,7 +43,8 @@ namespace DevExchangeBot.Commands
             {
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder()
-                        .WithContent($"{Program.Config.Emoji.Failure} Menu limit reached! You cannot have more than 25 menus.")
+                        .WithContent(
+                            $"{Program.Config.Emoji.Failure} Menu limit reached! You cannot have more than 25 menus.")
                         .AsEphemeral(true));
                 return;
             }
@@ -67,13 +71,15 @@ namespace DevExchangeBot.Commands
 
             // Respond with a success message
             await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-                .WithContent($"{Program.Config.Emoji.Success} Entry added, start adding roles by using the `addrole` command!"));
+                .WithContent(
+                    $"{Program.Config.Emoji.Success} Entry added, start adding roles by using the `addrole` command!"));
         }
 
-        [SlashCommand("suppress", "Completely deletes a menu from the module."),
-         SlashRequireUserPermissions(Permissions.Administrator)]
+        [SlashCommand("suppress", "Completely deletes a menu from the module.")]
+        [SlashRequireUserPermissions(Permissions.Administrator)]
         public async Task Suppress(InteractionContext ctx,
-            [ChoiceProvider(typeof(MenuNamesChoiceProvider)), Option("Menu", "Menu to delete")] string menuName)
+            [ChoiceProvider(typeof(MenuNamesChoiceProvider))] [Option("Menu", "Menu to delete")]
+            string menuName)
         {
             // Check if the menu exists
             if (StorageContext.Model.RoleMenus.All(m => m.Name != menuName))
@@ -86,20 +92,23 @@ namespace DevExchangeBot.Commands
             }
 
             // Make a fancy message with buttons and let the event handle the deletion
-            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,new DiscordInteractionResponseBuilder()
-                .AddComponents(
-                    new DiscordButtonComponent(ButtonStyle.Danger, $"deleteMenu_{menuName}", "Confirm"),
-                    new DiscordButtonComponent(ButtonStyle.Secondary, "cancelMenuSuppression", "Cancel"))
-                .WithContent(
-                    $"Click the button below to confirm menu named `{menuName}` deletion. {Program.Config.Emoji.Warning} This action is irreversible!")
-                .AsEphemeral(true));
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
+                new DiscordInteractionResponseBuilder()
+                    .AddComponents(
+                        new DiscordButtonComponent(ButtonStyle.Danger, $"deleteMenu_{menuName}", "Confirm"),
+                        new DiscordButtonComponent(ButtonStyle.Secondary, "cancelMenuSuppression", "Cancel"))
+                    .WithContent(
+                        $"Click the button below to confirm menu named `{menuName}` deletion. {Program.Config.Emoji.Warning} This action is irreversible!")
+                    .AsEphemeral(true));
         }
 
-        [SlashCommand("changeselectiontype", "Change the selection type of the menu"),
-         SlashRequireUserPermissions(Permissions.Administrator)]
+        [SlashCommand("changeselectiontype", "Change the selection type of the menu")]
+        [SlashRequireUserPermissions(Permissions.Administrator)]
         public async Task ChangeSelectionType(InteractionContext ctx,
-            [ChoiceProvider(typeof(MenuNamesChoiceProvider)), Option("Menu", "Menu to delete")] string menuName,
-            [ChoiceProvider(typeof(SelectionTypeChoiceProvider)), Option("Selection", "Selection type")] string stringMultipleSelection)
+            [ChoiceProvider(typeof(MenuNamesChoiceProvider))] [Option("Menu", "Menu to delete")]
+            string menuName,
+            [ChoiceProvider(typeof(SelectionTypeChoiceProvider))] [Option("Selection", "Selection type")]
+            string stringMultipleSelection)
         {
             // Check if the menu exists
             if (StorageContext.Model.RoleMenus.All(m => m.Name != menuName))
@@ -126,11 +135,15 @@ namespace DevExchangeBot.Commands
                     .AsEphemeral(true));
         }
 
-        [SlashCommand("spawn", "Spawns a menu"), SlashRequireUserPermissions(Permissions.Administrator)]
+        [SlashCommand("spawn", "Spawns a menu")]
+        [SlashRequireUserPermissions(Permissions.Administrator)]
         public async Task Spawn(InteractionContext ctx,
-            [ChoiceProvider(typeof(MenuNamesChoiceProvider)), Option("Menu", "Menu to delete")] string menuName,
-            [Option("InEmbed", "Whether to put the message in a embed")] bool inEmbed = false,
-            [Option("Message", "Customize the message above the menu")] string message = "Select your roles below")
+            [ChoiceProvider(typeof(MenuNamesChoiceProvider))] [Option("Menu", "Menu to delete")]
+            string menuName,
+            [Option("InEmbed", "Whether to put the message in a embed")]
+            bool inEmbed = false,
+            [Option("Message", "Customize the message above the menu")]
+            string message = "Select your roles below")
         {
             if (StorageContext.Model.RoleMenus.All(m => m.Name != menuName))
             {
@@ -189,19 +202,26 @@ namespace DevExchangeBot.Commands
                 builder.AddEmbed(embed);
             }
             else
+            {
                 builder.WithContent(message);
+            }
 
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
-                new DiscordInteractionResponseBuilder().WithContent($"{Program.Config.Emoji.Success} Success!").AsEphemeral(true));
+                new DiscordInteractionResponseBuilder().WithContent($"{Program.Config.Emoji.Success} Success!")
+                    .AsEphemeral(true));
             await builder.SendAsync(ctx.Channel);
         }
 
-        [SlashCommand("addrole", "Adds a role to a menu"), SlashRequireUserPermissions(Permissions.Administrator)]
+        [SlashCommand("addrole", "Adds a role to a menu")]
+        [SlashRequireUserPermissions(Permissions.Administrator)]
         public async Task AddRole(InteractionContext ctx,
-            [ChoiceProvider(typeof(MenuNamesChoiceProvider)), Option("Menu", "Menu to delete")] string menuName,
-            [Option("Role", "Role to add")]DiscordRole role,
-            [Option("Emoji", "Emoji to use for the option")]string rawEmoji,
-            [Option("Description", "Description of the option")]string description)
+            [ChoiceProvider(typeof(MenuNamesChoiceProvider))] [Option("Menu", "Menu to delete")]
+            string menuName,
+            [Option("Role", "Role to add")] DiscordRole role,
+            [Option("Emoji", "Emoji to use for the option")]
+            string rawEmoji,
+            [Option("Description", "Description of the option")]
+            string description)
         {
             if (StorageContext.Model.RoleMenus.All(m => m.Name != menuName))
             {
@@ -228,7 +248,8 @@ namespace DevExchangeBot.Commands
             {
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                     new DiscordInteractionResponseBuilder()
-                        .WithContent($"{Program.Config.Emoji.Failure} Options limit reached! You cannot have more than 25 options in your menu.")
+                        .WithContent(
+                            $"{Program.Config.Emoji.Failure} Options limit reached! You cannot have more than 25 options in your menu.")
                         .AsEphemeral(true));
                 return;
             }
@@ -239,11 +260,13 @@ namespace DevExchangeBot.Commands
 
             if (rawEmojiRegex.Success)
             {
-                if (!ulong.TryParse(rawEmojiRegex.Groups[1].Value, out var emojiId) || !DiscordEmoji.TryFromGuildEmote(ctx.Client, emojiId, out emoji))
+                if (!ulong.TryParse(rawEmojiRegex.Groups[1].Value, out var emojiId) ||
+                    !DiscordEmoji.TryFromGuildEmote(ctx.Client, emojiId, out emoji))
                 {
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                         new DiscordInteractionResponseBuilder()
-                            .WithContent($"{Program.Config.Emoji.Failure} You did not provide a correct emoji! Be sure the bot has access to the emoji.")
+                            .WithContent(
+                                $"{Program.Config.Emoji.Failure} You did not provide a correct emoji! Be sure the bot has access to the emoji.")
                             .AsEphemeral(true));
                     return;
                 }
@@ -254,7 +277,8 @@ namespace DevExchangeBot.Commands
                 {
                     await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
                         new DiscordInteractionResponseBuilder()
-                            .WithContent($"{Program.Config.Emoji.Failure} You did not provide a correct emoji! Be sure the bot has access to the emoji.")
+                            .WithContent(
+                                $"{Program.Config.Emoji.Failure} You did not provide a correct emoji! Be sure the bot has access to the emoji.")
                             .AsEphemeral(true));
                     return;
                 }
@@ -273,9 +297,11 @@ namespace DevExchangeBot.Commands
                     .AsEphemeral(true));
         }
 
-        [SlashCommand("delrole", "Deletes a role from a menu"), SlashRequireUserPermissions(Permissions.Administrator)]
+        [SlashCommand("delrole", "Deletes a role from a menu")]
+        [SlashRequireUserPermissions(Permissions.Administrator)]
         public async Task DelRole(InteractionContext ctx,
-            [Option("Menu", "Menu to delete the role from"), ChoiceProvider(typeof(MenuNamesChoiceProvider))] string menuName,
+            [Option("Menu", "Menu to delete the role from")] [ChoiceProvider(typeof(MenuNamesChoiceProvider))]
+            string menuName,
             [Option("Role", "Role to remove")] DiscordRole role)
         {
             if (StorageContext.Model.RoleMenus.All(m => m.Name != menuName))
@@ -308,7 +334,8 @@ namespace DevExchangeBot.Commands
 
         [SlashCommand("getmenuinfo", "Gets all available information about a menu.")]
         public async Task GetMenuInfo(InteractionContext ctx,
-            [Option("Menu", "Menu to delete the role from"), ChoiceProvider(typeof(MenuNamesChoiceProvider))] string menuName)
+            [Option("Menu", "Menu to delete the role from")] [ChoiceProvider(typeof(MenuNamesChoiceProvider))]
+            string menuName)
         {
             if (StorageContext.Model.RoleMenus.All(m => m.Name != menuName))
             {

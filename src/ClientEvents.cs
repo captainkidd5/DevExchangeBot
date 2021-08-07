@@ -15,12 +15,12 @@ namespace DevExchangeBot
     public static class ClientEvents
     {
         /// <summary>
-        /// This method is responsible of handling the logic of the levelling module
+        ///     This method is responsible of handling the logic of the levelling module
         /// </summary>
         public static async Task OnMessageCreatedLevelling(DiscordClient sender, MessageCreateEventArgs e)
         {
             // If the user is a bot or the message starts with a prefix, cancel the action
-            if (e.Author.IsBot || e.Message.Content.StartsWith(Program.Config.Prefix))
+            if (e.Author.IsBot)
                 return;
 
             // Try to retrieve the data associated with the user, if fails, create it
@@ -37,7 +37,8 @@ namespace DevExchangeBot
 
             // Prevent the emoji strings to count for more than one character and add some EXP depending on the length of the message
             Regex.Replace(content, "<:[a-zA-Z]+:[0-9]+>", "0", RegexOptions.IgnoreCase);
-            user.Exp += (int)Math.Round(content.Length / 2D * StorageContext.Model.ExpMultiplier, MidpointRounding.ToZero);
+            user.Exp += (int)Math.Round(content.Length / 2D * StorageContext.Model.ExpMultiplier,
+                MidpointRounding.ToZero);
 
             // Reward the user with new level(s) if he can pass to the next level
             while (user.Exp > user.ExpToNextLevel)
@@ -47,7 +48,10 @@ namespace DevExchangeBot
 
                 // The whole if clause below is dedicated to send a message on a level-up
                 if (StorageContext.Model.LevelUpChannelId == 0 || StorageContext.Model.EnableLevelUpChannel == false)
-                    await e.Channel.SendMessageAsync($"{Program.Config.Emoji.Confetti} {e.Author.Mention} advanced to level {user.Level}!");
+                {
+                    await e.Channel.SendMessageAsync(
+                        $"{Program.Config.Emoji.Confetti} {e.Author.Mention} advanced to level {user.Level}!");
+                }
                 else
                 {
                     DiscordChannel channel;
@@ -67,7 +71,8 @@ namespace DevExchangeBot
                         return;
                     }
 
-                    await channel.SendMessageAsync($"{Program.Config.Emoji.Confetti} {e.Author.Mention} advanced to level {user.Level}!");
+                    await channel.SendMessageAsync(
+                        $"{Program.Config.Emoji.Confetti} {e.Author.Mention} advanced to level {user.Level}!");
                 }
             }
 
@@ -76,7 +81,7 @@ namespace DevExchangeBot
         }
 
         /// <summary>
-        /// This method handles the logic of the auto-quoter module
+        ///     This method handles the logic of the auto-quoter module
         /// </summary>
         public static async Task OnMessageCreatedAutoQuoter(DiscordClient sender, MessageCreateEventArgs e)
         {
@@ -99,7 +104,8 @@ namespace DevExchangeBot
             }
             catch (Exception exception)
             {
-                sender.Logger.LogWarning(exception, "Could not get message from the following link '{Link}'", e.Message.Content);
+                sender.Logger.LogWarning(exception, "Could not get message from the following link '{Link}'",
+                    e.Message.Content);
                 return;
             }
 
@@ -110,21 +116,24 @@ namespace DevExchangeBot
                     Color = new DiscordColor(Program.Config.Color),
                     Description = message.Content
                 }
-                .WithAuthor($"{message.Author.Username}#{message.Author.Discriminator}", iconUrl:message.Author.AvatarUrl)
-                .AddField("Quoted by", $"{e.Message.Author.Mention} from [#{message.Channel.Name}]({message.JumpLink})"));
+                .WithAuthor($"{message.Author.Username}#{message.Author.Discriminator}",
+                    iconUrl: message.Author.AvatarUrl)
+                .AddField("Quoted by",
+                    $"{e.Message.Author.Mention} from [#{message.Channel.Name}]({message.JumpLink})"));
         }
 
         /// <summary>
-        /// This method deletes a user's data when he leaves the guild in any way (leave, kick, ban, etc...)
+        ///     This method deletes a user's data when he leaves the guild in any way (leave, kick, ban, etc...)
         /// </summary>
-        public static Task OnGuildMemberRemoved(DiscordClient sender, GuildMemberRemoveEventArgs guildMemberRemoveEventArgs)
+        public static Task OnGuildMemberRemoved(DiscordClient sender,
+            GuildMemberRemoveEventArgs guildMemberRemoveEventArgs)
         {
             StorageContext.Model.Users.Remove(guildMemberRemoveEventArgs.Member.Id);
             return Task.CompletedTask;
         }
 
         /// <summary>
-        /// This method contains the logic for the starboard
+        ///     This method contains the logic for the starboard
         /// </summary>
         public static async Task OnMessageReactionAdded(DiscordClient sender, MessageReactionAddEventArgs e)
         {
@@ -132,9 +141,10 @@ namespace DevExchangeBot
             if (!StorageContext.Model.HeartBoardEnabled || StorageContext.Model.HeartBoardChannel == 0) return;
 
             // Parse the emoji(s) specified in the global config
-            var emojiList = Program.Config.RawHeartBoardEmojis.Select(configRawHeartBoardEmoji => ulong.TryParse(configRawHeartBoardEmoji, out var emojiId)
-                    ? DiscordEmoji.FromGuildEmote(sender, emojiId)
-                    : DiscordEmoji.FromName(sender, configRawHeartBoardEmoji))
+            var emojiList = Program.Config.RawHeartBoardEmojis.Select(configRawHeartBoardEmoji =>
+                    ulong.TryParse(configRawHeartBoardEmoji, out var emojiId)
+                        ? DiscordEmoji.FromGuildEmote(sender, emojiId)
+                        : DiscordEmoji.FromName(sender, configRawHeartBoardEmoji))
                 .ToList();
 
             // Try getting the orignal message, we need this because the event arguments do not provide everything we need
@@ -175,13 +185,14 @@ namespace DevExchangeBot
                     Description = originalMessage.Content,
                     Color = new DiscordColor(reacNumber switch
                     {
-                        >=25 => "#226383", >=10 => "#3c7f9e", >5 => "#5ca0bf", _ => "#8fc9e6",
+                        >=25 => "#226383", >=10 => "#3c7f9e", >5 => "#5ca0bf", _ => "#8fc9e6"
                     })
                 }
                 .WithAuthor($"{originalMessage.Author.Username}", null, originalMessage.Author.AvatarUrl)
                 .AddField("Original", $"[Click me!]({originalMessage.JumpLink})", true)
                 .AddField("Stars",
-                    $"{reacNumber switch {>=25 => ":sparkles:", >=10 => ":dizzy:", >5 => ":star2:", _ => ":star:"}} {reacNumber}", true)
+                    $"{reacNumber switch { >=25 => ":sparkles:", >=10 => ":dizzy:", >5 => ":star2:", _ => ":star:" }} {reacNumber}",
+                    true)
                 .WithFooter($"{originalMessage.CreationTimestamp.Date.ToLongDateString()}")
                 .Build();
 
@@ -199,6 +210,7 @@ namespace DevExchangeBot
                 {
                     sender.Logger.LogError(new EventId(0, "Error"), exception, "Could not update starboard message");
                 }
+
                 return;
             }
 
@@ -211,15 +223,16 @@ namespace DevExchangeBot
         }
 
         /// <summary>
-        /// This method is identical to <see cref="OnMessageReactionAdded"/>, except it cannot send messages, only update them
+        ///     This method is identical to <see cref="OnMessageReactionAdded" />, except it cannot send messages, only update them
         /// </summary>
         public static async Task OnMessageReactionRemoved(DiscordClient sender, MessageReactionRemoveEventArgs e)
         {
             if (!StorageContext.Model.HeartBoardEnabled || StorageContext.Model.HeartBoardChannel == 0) return;
 
-            var emojiList = Program.Config.RawHeartBoardEmojis.Select(configRawHeartBoardEmoji => ulong.TryParse(configRawHeartBoardEmoji, out var emojiId)
-                    ? DiscordEmoji.FromGuildEmote(sender, emojiId)
-                    : DiscordEmoji.FromName(sender, configRawHeartBoardEmoji))
+            var emojiList = Program.Config.RawHeartBoardEmojis.Select(configRawHeartBoardEmoji =>
+                    ulong.TryParse(configRawHeartBoardEmoji, out var emojiId)
+                        ? DiscordEmoji.FromGuildEmote(sender, emojiId)
+                        : DiscordEmoji.FromName(sender, configRawHeartBoardEmoji))
                 .ToList();
 
             DiscordMessage originalMessage;
@@ -253,20 +266,20 @@ namespace DevExchangeBot
                     Description = originalMessage.Content,
                     Color = new DiscordColor(reacNumber switch
                     {
-                        >=25 => "#226383", >=10 => "#3c7f9e", >5 => "#5ca0bf", _ => "#8fc9e6",
+                        >=25 => "#226383", >=10 => "#3c7f9e", >5 => "#5ca0bf", _ => "#8fc9e6"
                     })
                 }
                 .WithAuthor($"{originalMessage.Author.Username}", null, originalMessage.Author.AvatarUrl)
                 .AddField("Original", $"[Click me!]({originalMessage.JumpLink})", true)
                 .AddField("Stars",
-                    $"{reacNumber switch {>=25 => ":sparkles:", >=10 => ":dizzy:", >5 => ":star2:", _ => ":star:"}} {reacNumber}", true)
+                    $"{reacNumber switch { >=25 => ":sparkles:", >=10 => ":dizzy:", >5 => ":star2:", _ => ":star:" }} {reacNumber}",
+                    true)
                 .WithFooter($"{originalMessage.CreationTimestamp.Date.ToLongDateString()}")
                 .Build();
 
             StorageContext.Model.HeartboardMessages ??= new Dictionary<ulong, ulong>();
 
             if (StorageContext.Model.HeartboardMessages.TryGetValue(originalMessage.Id, out var starboardMessage))
-            {
                 try
                 {
                     var message = await channel.GetMessageAsync(starboardMessage);
@@ -276,10 +289,10 @@ namespace DevExchangeBot
                 {
                     sender.Logger.LogError(new EventId(0, "Error"), exception, "Could not update starboard message");
                 }
-            }
         }
 
-        public static Task OnComponentInteractionCreatedRoleMenu(DiscordClient sender, ComponentInteractionCreateEventArgs e)
+        public static Task OnComponentInteractionCreatedRoleMenu(DiscordClient sender,
+            ComponentInteractionCreateEventArgs e)
         {
             // Check if the component we interacted with is a role menu
             var match = Regex.Match(e.Id, "^roleMenu_(.+$)");
@@ -293,7 +306,8 @@ namespace DevExchangeBot
 
                 if (StorageContext.Model.RoleMenus.All(m => m.Name != menuName))
                 {
-                    sender.Logger.LogWarning("Could not get menu of name '{MenuName}', data may have been altered", menuName);
+                    sender.Logger.LogWarning("Could not get menu of name '{MenuName}', data may have been altered",
+                        menuName);
                     return;
                 }
 
@@ -304,7 +318,6 @@ namespace DevExchangeBot
 
                 // Loop through all of the roles the user has not selected and revoke them
                 foreach (var option in menu.Options.Where(o => !e.Values.Contains(o.RoleId.ToString())))
-                {
                     try
                     {
                         var role = e.Guild.GetRole(option.RoleId);
@@ -312,14 +325,13 @@ namespace DevExchangeBot
                     }
                     catch (Exception exception)
                     {
-                        sender.Logger.LogWarning(exception, "Could not either get role of ID '{RoleId}' or revoke the previous role from user '{Username}#{Tag}' ({UserID})",
+                        sender.Logger.LogWarning(exception,
+                            "Could not either get role of ID '{RoleId}' or revoke the previous role from user '{Username}#{Tag}' ({UserID})",
                             option.RoleId, member.Username, member.Discriminator, member.Id);
                     }
-                }
 
                 // Loop through all of the roles the user has selected and grant them
                 foreach (var value in e.Values)
-                {
                     try
                     {
                         var role = e.Guild.GetRole(ulong.Parse(value));
@@ -327,10 +339,10 @@ namespace DevExchangeBot
                     }
                     catch (Exception exception)
                     {
-                        sender.Logger.LogWarning(exception, "Could not either get role of ID '{RoleId}' or grant the previous role from user '{Username}#{Tag}' ({UserID})",
+                        sender.Logger.LogWarning(exception,
+                            "Could not either get role of ID '{RoleId}' or grant the previous role from user '{Username}#{Tag}' ({UserID})",
                             value, member.Username, member.Discriminator, member.Id);
                     }
-                }
 
                 // Finally send a response ton indicate the user his roles have been updated
                 await e.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
@@ -339,7 +351,8 @@ namespace DevExchangeBot
             return Task.CompletedTask;
         }
 
-        public static async Task OnComponentInteractionCreatedRoleMenuSuppression(DiscordClient sender, ComponentInteractionCreateEventArgs e)
+        public static async Task OnComponentInteractionCreatedRoleMenuSuppression(DiscordClient sender,
+            ComponentInteractionCreateEventArgs e)
         {
             // Check if the component is a delete button
             var match = Regex.Match(e.Id, "^deleteMenu_(.+$)");
@@ -365,7 +378,8 @@ namespace DevExchangeBot
 
                 if (StorageContext.Model.RoleMenus.All(m => m.Name != menuName))
                 {
-                    sender.Logger.LogWarning("Could not get menu of name '{MenuName}', data may have been altered", menuName);
+                    sender.Logger.LogWarning("Could not get menu of name '{MenuName}', data may have been altered",
+                        menuName);
                     return;
                 }
 

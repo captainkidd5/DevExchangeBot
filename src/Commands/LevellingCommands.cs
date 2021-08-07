@@ -17,7 +17,8 @@ namespace DevExchangeBot.Commands
     public class LevellingCommands : SlashCommandModule
     {
         [SlashCommand("rank", "Show the rank for self or a given user.")]
-        public async Task Rank(InteractionContext ctx, [Option("Member", "User to show the rank of.")] DiscordUser mbr = null)
+        public async Task Rank(InteractionContext ctx,
+            [Option("Member", "User to show the rank of.")] DiscordUser mbr = null)
         {
             // Verify we have data related to the user, if not, say the user has not talked yet
             var talked = StorageContext.Model.Users.TryGetValue(mbr?.Id ?? ctx.Member.Id, out var user);
@@ -39,8 +40,10 @@ namespace DevExchangeBot.Commands
 
             // Build a response and send it
             var embed = new DiscordEmbedBuilder()
-                .WithTitle($"{mbr?.Username ?? ctx.Member.Username}#{mbr?.Discriminator ?? ctx.Member.Discriminator}'s {(rank == 1 ? Program.Config.Emoji.GoldMedal : null)} ranking stats:")
-                .WithDescription($"Level: **{user.Level}**\nEXP: **{user.Exp}**/{user.ExpToNextLevel}\nRank: **{rank}**/{orderedList.Count}")
+                .WithTitle(
+                    $"{mbr?.Username ?? ctx.Member.Username}#{mbr?.Discriminator ?? ctx.Member.Discriminator}'s {(rank == 1 ? Program.Config.Emoji.GoldMedal : null)} ranking stats:")
+                .WithDescription(
+                    $"Level: **{user.Level}**\nEXP: **{user.Exp}**/{user.ExpToNextLevel}\nRank: **{rank}**/{orderedList.Count}")
                 .WithColor(new DiscordColor(Program.Config.Color))
                 .WithThumbnail(mbr?.AvatarUrl ?? ctx.Member.AvatarUrl)
                 .WithTimestamp(DateTime.UtcNow)
@@ -51,7 +54,8 @@ namespace DevExchangeBot.Commands
         }
 
         [SlashCommand("leaderboard", "Shows the leaderboard for this server.")]
-        public async Task Leaderboard(InteractionContext ctx, [Option("Page", "Page of the leaderboard")] long pageLong = 1)
+        public async Task Leaderboard(InteractionContext ctx,
+            [Option("Page", "Page of the leaderboard")] long pageLong = 1)
         {
             // Parse the long as an int for practical issues
             if (!int.TryParse(pageLong.ToString(), out var page))
@@ -102,8 +106,9 @@ namespace DevExchangeBot.Commands
             {
                 var member = await ctx.Guild.GetMemberAsync(user.Id);
 
-                builder.AddField($"{index}. {member.Username}#{member.Discriminator}", $"Level: {user.Level} | EXP: {user.Exp}/{user.ExpToNextLevel} " +
-                    $"{(index switch { 1 => Program.Config.Emoji.GoldMedal, 2 => Program.Config.Emoji.SilverMedal, 3 => Program.Config.Emoji.BronzeMedal, _ => null })}");
+                builder.AddField($"{index}. {member.Username}#{member.Discriminator}",
+                    $"Level: {user.Level} | EXP: {user.Exp}/{user.ExpToNextLevel} " +
+                    $"{index switch { 1 => Program.Config.Emoji.GoldMedal, 2 => Program.Config.Emoji.SilverMedal, 3 => Program.Config.Emoji.BronzeMedal, _ => null }}");
 
                 ++index;
             }
@@ -117,8 +122,11 @@ namespace DevExchangeBot.Commands
                     .AsEphemeral(true));
         }
 
-        [SlashCommand("setlevel", "Sets the level of a given user. Requires admin permissions."), SlashRequireUserPermissions(Permissions.Administrator)]
-        public async Task SetLevel(InteractionContext ctx, [Option("Member", "Member to set the level of")] DiscordUser member, [Option("Level", "Level to set.")] long levelLong)
+        [SlashCommand("setlevel", "Sets the level of a given user. Requires admin permissions.")]
+        [SlashRequireUserPermissions(Permissions.Administrator)]
+        public async Task SetLevel(InteractionContext ctx,
+            [Option("Member", "Member to set the level of")] DiscordUser member,
+            [Option("Level", "Level to set.")] long levelLong)
         {
             // Parse the long as an int for practical issues
             if (!int.TryParse(levelLong.ToString(), out var level))
@@ -161,8 +169,10 @@ namespace DevExchangeBot.Commands
                     .AsEphemeral(true));
         }
 
-        [SlashCommand("setmultiplier", "Sets the global EXP multiplier. Requires admin permissions."), SlashRequireUserPermissions(Permissions.Administrator)]
-        public async Task SetXpMultiplier(InteractionContext ctx, [Option("Multiplier", "Global multiplier to apply.")] double multiplier)
+        [SlashCommand("setmultiplier", "Sets the global EXP multiplier. Requires admin permissions.")]
+        [SlashRequireUserPermissions(Permissions.Administrator)]
+        public async Task SetXpMultiplier(InteractionContext ctx,
+            [Option("Multiplier", "Global multiplier to apply.")] double multiplier)
         {
             // Check if the multiplier is negative
             if (multiplier <= 0)
@@ -175,7 +185,7 @@ namespace DevExchangeBot.Commands
             }
 
             // Set the new multiplier
-            StorageContext.Model.ExpMultiplier = (float) multiplier;
+            StorageContext.Model.ExpMultiplier = (float)multiplier;
 
             var builder = new DiscordEmbedBuilder()
                 .WithDescription($"{Program.Config.Emoji.Success} EXP multiplier correctly set to {multiplier}!")
@@ -190,8 +200,10 @@ namespace DevExchangeBot.Commands
 
         [SlashCommand("setlevelupchannel", "Sets the channel where level-up messages should be displayed.")]
         public async Task SetLevelUpChannel(InteractionContext ctx,
-            [Option("Channel", "Channel to display the level-up messages in")] DiscordChannel channel,
-            [Option("Enable", "If false, will send the level-up message in the current channel. Defaults to true.")] bool enable = true)
+            [Option("Channel", "Channel to display the level-up messages in")]
+            DiscordChannel channel,
+            [Option("Enable", "If false, will send the level-up message in the current channel. Defaults to true.")]
+            bool enable = true)
         {
             // Check if the given channel is a text channel
             if (channel.Type != ChannelType.Text)
