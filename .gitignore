@@ -9,6 +9,9 @@
 bin/
 obj/
 
+# Exclude the Serilog logging directory
+logs/
+
 # Exclude the config.json containing runtime secrets
 # that should not appear in the commit history
 /config.json
