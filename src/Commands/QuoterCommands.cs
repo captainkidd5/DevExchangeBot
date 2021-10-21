@@ -14,7 +14,7 @@ namespace DevExchangeBot.Commands
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     [SlashCommandGroup("quoter", "Commands related to the quoter module")]
-    public class QuoterCommands : SlashCommandModule
+    public class QuoterCommands : ApplicationCommandModule
     {
         [SlashCommand("quote", "Quotes a message.")]
         public async Task Quote(InteractionContext ctx,

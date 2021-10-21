@@ -14,7 +14,7 @@ namespace DevExchangeBot.Commands
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     [SlashCommandGroup("levelling", "Commands related to the levelling module")]
-    public class LevellingCommands : SlashCommandModule
+    public class LevellingCommands : ApplicationCommandModule
     {
         [SlashCommand("rank", "Show the rank for self or a given user.")]
         public async Task Rank(InteractionContext ctx,

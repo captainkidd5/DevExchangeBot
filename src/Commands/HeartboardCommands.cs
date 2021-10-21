@@ -11,7 +11,7 @@ namespace DevExchangeBot.Commands
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     [SlashCommandGroup("heartboard", "Commands related to the heartboard module")]
-    public class HeartboardCommands : SlashCommandModule
+    public class HeartboardCommands : ApplicationCommandModule
     {
         [SlashCommand("setchannel", "Sets the channel for the starboard")]
         [SlashRequireUserPermissions(Permissions.Administrator)]

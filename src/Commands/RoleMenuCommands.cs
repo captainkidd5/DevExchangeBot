@@ -18,7 +18,7 @@ namespace DevExchangeBot.Commands
 {
     [SlashCommandGroup("rolemenu", "Role-menu related commands")]
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class RoleMenuCommands : SlashCommandModule
+    public class RoleMenuCommands : ApplicationCommandModule
     {
         [SlashCommand("create", "Creates an entry for a menu")]
         [SlashRequireUserPermissions(Permissions.Administrator)]
