@@ -10,16 +10,10 @@ To get you up to speed with the project, please read the rest of the README belo
 First thing first, create a new Discord application and copy its token over. After cloning the project, copy
 the `config.example.json` file in the root of the project and name it `config.json`.
 
+Now, add the nightly NuGet sources to your `NuGet.config` file according to [this guide](https://dsharpplus.github.io/articles/misc/nightly_builds.html).
+
 Paste the bot token of the newly created Discord application in the `Token` field of the configuration file. Take the
 bot for a test drive by compiling and running the program using your favorite IDE of text editor.
-
-Now, open up a terminal and run the following commands to pull in the latest DSharpPlus NuGet sources and restore the
-project's dependencies:
-
-```
-dotnet nuget add source https://nuget.emzi0767.com/api/v3/index.json
-dotnet restore
-```
 
 Don't forget to enable all intents on the Discord configuration page and add the bot to a server to see it in action!
 
